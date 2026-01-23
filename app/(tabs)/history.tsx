@@ -1,13 +1,12 @@
-import { StyleSheet } from 'react-native';
-
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { StyleSheet } from 'react-native';
 
-export default function HomeScreen() {
+export default function HistoryScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Home</ThemedText>
-      <ThemedText>Welcome to Gymmora! Your active workout plan will appear here.</ThemedText>
+      <ThemedText type="title">Workout History</ThemedText>
+      <ThemedText>View your past performance and consistency here.</ThemedText>
     </ThemedView>
   );
 }

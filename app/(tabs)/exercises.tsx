@@ -1,16 +1,17 @@
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ExerciseCard } from '@/components/ui/exercise/exercise-card';
+import { FilterChip } from '@/components/ui/filter-chip';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Exercise, useExercisesViewModel } from '@/view-models/use-exercises-view-model';
 
-export default function TabTwoScreen() {
+export default function ExercisesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
@@ -30,42 +31,23 @@ export default function TabTwoScreen() {
   } = useExercisesViewModel();
 
   const renderExerciseItem = ({ item }: { item: Exercise }) => (
-    <TouchableOpacity 
-      style={[styles.exerciseCard, { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7' }]}
+    <ExerciseCard
+      title={item.title}
+      overview={item.overview ?? undefined}
+      gifUrl={item.gifUrl}
       onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: item.id } })}
-    >
-      <View style={styles.imageContainer}>
-        {item.gifUrl ? (
-          <Image source={{ uri: item.gifUrl }} style={styles.exerciseImage} contentFit="cover" />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <IconSymbol name="dumbbell.fill" size={24} color={theme.icon} />
-          </View>
-        )}
-      </View>
-      <View style={styles.exerciseInfo}>
-        <ThemedText type="defaultSemiBold" style={styles.exerciseTitle}>{item.title}</ThemedText>
-        <ThemedText numberOfLines={1} style={styles.exerciseOverview}>{item.overview}</ThemedText>
-      </View>
-      <IconSymbol name="chevron.right" size={16} color={theme.icon} />
-    </TouchableOpacity>
+    />
   );
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <ThemedText type="title" style={styles.headerTitle}>Exercises</ThemedText>
-        <View style={styles.searchBarContainer}>
-          <IconSymbol name="magnifyingglass" size={18} color={theme.icon} style={styles.searchIcon} />
-          <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search exercises..."
-            placeholderTextColor={colorScheme === 'dark' ? '#8E8E93' : '#AEAEB2'}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            clearButtonMode="while-editing"
-          />
-        </View>
+        <SearchBar 
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search exercises..."
+        />
       </View>
 
       <View style={styles.filterContainer}>
@@ -74,7 +56,6 @@ export default function TabTwoScreen() {
             label="All Muscles" 
             active={!selectedMuscleGroup} 
             onPress={() => setSelectedMuscleGroup(null)} 
-            theme={theme}
           />
           {muscleGroups.map(mg => (
             <FilterChip 
@@ -82,7 +63,6 @@ export default function TabTwoScreen() {
               label={mg} 
               active={selectedMuscleGroup === mg} 
               onPress={() => setSelectedMuscleGroup(mg)} 
-              theme={theme}
             />
           ))}
         </ScrollView>
@@ -91,7 +71,6 @@ export default function TabTwoScreen() {
             label="All Equipment" 
             active={!selectedEquipment} 
             onPress={() => setSelectedEquipment(null)} 
-            theme={theme}
           />
           {equipmentList.map(eq => (
             <FilterChip 
@@ -99,7 +78,6 @@ export default function TabTwoScreen() {
               label={eq} 
               active={selectedEquipment === eq} 
               onPress={() => setSelectedEquipment(eq)} 
-              theme={theme}
             />
           ))}
         </ScrollView>
@@ -126,22 +104,6 @@ export default function TabTwoScreen() {
   );
 }
 
-function FilterChip({ label, active, onPress, theme }: { label: string; active: boolean; onPress: () => void; theme: any }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[
-        styles.chip,
-        active ? { backgroundColor: theme.tint } : { backgroundColor: 'transparent', borderColor: theme.icon, borderWidth: 1 }
-      ]}
-    >
-      <ThemedText style={[styles.chipText, active && { color: '#fff', fontWeight: 'bold' }]}>
-        {label}
-      </ThemedText>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,22 +117,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.rounded,
     fontSize: 28,
   },
-  searchBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(142, 142, 147, 0.12)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: Fonts.sans,
-  },
   filterContainer: {
     gap: 12,
     marginVertical: 10,
@@ -179,57 +125,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 8,
   },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chipText: {
-    fontSize: 13,
-  },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  exerciseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    gap: 12,
-  },
-  imageContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-  },
-  exerciseImage: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderImage: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  exerciseInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 2,
-  },
-  exerciseTitle: {
-    fontSize: 16,
-  },
-  exerciseOverview: {
-    fontSize: 13,
-    opacity: 0.6,
   },
   loaderContainer: {
     flex: 1,
