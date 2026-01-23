@@ -16,15 +16,25 @@ export function FilterChip({ label, active, onPress }: FilterChipProps) {
 
   return (
     <TouchableOpacity
+      activeOpacity={0.8}
       onPress={onPress}
       style={[
         styles.chip,
-        active 
-          ? { backgroundColor: theme.tint } 
-          : { backgroundColor: 'transparent', borderColor: theme.icon, borderWidth: 1 }
+        { 
+          backgroundColor: active ? theme.tint : 'rgba(255,255,255,0.04)',
+          borderColor: active ? theme.tint : 'rgba(255,255,255,0.06)',
+          borderWidth: 1,
+        }
       ]}
     >
-      <ThemedText style={[styles.chipText, active && { color: '#fff', fontWeight: 'bold' }]}>
+      <ThemedText style={[
+        styles.chipText, 
+        { 
+          color: active ? '#FFFFFF' : theme.text,
+          opacity: active ? 1 : 0.6,
+          fontWeight: active ? '700' : '500'
+        }
+      ]}>
         {label}
       </ThemedText>
     </TouchableOpacity>
@@ -33,14 +43,14 @@ export function FilterChip({ label, active, onPress }: FilterChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 14,
   },
 });

@@ -9,8 +9,7 @@ import { InstructionStep } from '@/components/ui/exercise/instruction-step';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Section } from '@/components/ui/section';
-import { Tag } from '@/components/ui/tag';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useExerciseDetailViewModel } from '@/view-models/use-exercise-detail-view-model';
 
@@ -53,9 +52,9 @@ export default function ExerciseDetailScreen() {
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()} 
-              style={[styles.headerCircleButton, { backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+              style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.1)' }]}
             >
-              <IconSymbol name="chevron.left" size={24} color={theme.text} />
+              <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           ),
         }} 
@@ -76,24 +75,30 @@ export default function ExerciseDetailScreen() {
           )}
         </View>
 
-        <View style={styles.content}>
-          <ThemedText type="title" style={styles.title}>{exercise.title}</ThemedText>
-          
-          <View style={styles.tagsContainer}>
-            {exercise.muscleGroups?.map((mg: any) => (
-              <Tag key={mg.id} label={mg.name} type="primary" />
-            ))}
-            {exercise.equipment?.map((e: any) => (
-              <Tag key={e.id} label={e.name} />
-            ))}
+        <View style={[styles.content, { backgroundColor: theme.background }]}>
+          <View style={styles.titleSection}>
+            <ThemedText style={styles.title}>{exercise.title}</ThemedText>
+            <View style={styles.tagsContainer}>
+              {exercise.muscleGroups?.map((mg: any) => (
+                <View key={mg.id} style={[styles.tag, { backgroundColor: theme.tint + '15' }]}>
+                  <ThemedText style={[styles.tagText, { color: theme.tint }]}>{mg.name.toUpperCase()}</ThemedText>
+                </View>
+              ))}
+              {exercise.equipment?.map((e: any) => (
+                <View key={e.id} style={[styles.tag, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+                  <ThemedText style={styles.tagText}>{e.name.toUpperCase()}</ThemedText>
+                </View>
+              ))}
+            </View>
           </View>
 
-          <ThemedText style={styles.overview}>{exercise.overview}</ThemedText>
+          {exercise.overview && (
+            <ThemedText style={styles.overview}>{exercise.overview}</ThemedText>
+          )}
 
-          {/* Targeted Muscles Image & List Section */}
-          <Section title="Targeted Muscles">
+          <Section title="Muscles Targeted" icon="bolt.fill">
             {exercise.musclesWorkedImg && (
-                <View style={styles.musclesImageView}>
+                <View style={[styles.musclesImageView, { backgroundColor: '#FFFFFF' }]}>
                   <Image 
                     source={{ uri: exercise.musclesWorkedImg }} 
                     style={styles.muscleImage} 
@@ -115,12 +120,10 @@ export default function ExerciseDetailScreen() {
                   <ThemedText style={styles.emptyText}>No muscle data available.</ThemedText>
                 )}
               </View>
-              
-              
             </View>
           </Section>
 
-          <Section title="How to Perform">
+          <Section title="How to Perform" icon="bolt.fill">
             {exercise.content?.filter((c: any) => c.contentType === 'step').length > 0 ? (
               exercise.content
                 ?.filter((c: any) => c.contentType === 'step')
@@ -137,66 +140,56 @@ export default function ExerciseDetailScreen() {
             )}
           </Section>
 
-          <Section title="Tips">
+          <Section title="Tips for Success" icon="bolt.fill">
             {exercise.content?.filter((c: any) => c.contentType === 'tip').length > 0 ? (
-              exercise.content
-                ?.filter((c: any) => c.contentType === 'tip')
-                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
-                .map((c: any) => (
-                  <View key={c.id} style={styles.bulletItem}>
-                    <ThemedText style={styles.bulletSymbol}>•</ThemedText>
-                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
-                  </View>
-                ))
+              <View style={[styles.infoBox, { backgroundColor: 'rgba(44, 154, 255, 0.05)', borderColor: 'rgba(44, 154, 255, 0.1)' }]}>
+                {exercise.content
+                  ?.filter((c: any) => c.contentType === 'tip')
+                  .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                  .map((c: any) => (
+                    <View key={c.id} style={styles.bulletItem}>
+                      <ThemedText style={[styles.bulletSymbol, { color: theme.tint }]}>→</ThemedText>
+                      <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
+                    </View>
+                  ))}
+              </View>
             ) : (
-              <ThemedText style={styles.emptyText}>No tips provided for this exercise.</ThemedText>
+              <ThemedText style={styles.emptyText}>No tips provided.</ThemedText>
             )}
           </Section>
 
-          <Section title="Common Mistakes">
+          <Section title="Common Mistakes" icon="bolt.fill">
             {exercise.content?.filter((c: any) => c.contentType === 'mistake').length > 0 ? (
-              exercise.content
-                ?.filter((c: any) => c.contentType === 'mistake')
-                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
-                .map((c: any) => (
-                  <View key={c.id} style={styles.bulletItem}>
-                    <ThemedText style={styles.bulletSymbol}>✕</ThemedText>
-                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
-                  </View>
-                ))
+              <View style={[styles.infoBox, { backgroundColor: 'rgba(255, 59, 48, 0.05)', borderColor: 'rgba(255, 59, 48, 0.1)' }]}>
+                {exercise.content
+                  ?.filter((c: any) => c.contentType === 'mistake')
+                  .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                  .map((c: any) => (
+                    <View key={c.id} style={styles.bulletItem}>
+                      <ThemedText style={[styles.bulletSymbol, { color: '#FF3B30' }]}>✕</ThemedText>
+                      <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
+                    </View>
+                  ))}
+              </View>
             ) : (
               <ThemedText style={styles.emptyText}>No common mistakes listed.</ThemedText>
             )}
           </Section>
 
-          <Section title="Benefits">
-            {exercise.content?.filter((c: any) => c.contentType === 'benefit').length > 0 ? (
-              exercise.content
-                ?.filter((c: any) => c.contentType === 'benefit')
-                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
-                .map((c: any) => (
-                  <View key={c.id} style={styles.bulletItem}>
-                    <IconSymbol name="checkmark.circle.fill" size={16} color={Colors.light.tint} style={{ marginRight: 8 }} />
-                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
-                  </View>
-                ))
-            ) : (
-              <ThemedText style={styles.emptyText}>No benefits data available.</ThemedText>
-            )}
-          </Section>
-
           {exercise.variations && exercise.variations.length > 0 && (
-            <Section title="Variations">
-              {exercise.variations.map((v: any) => (
-                <TouchableOpacity 
-                  key={v.variation.id} 
-                  style={[styles.variationCard, { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7' }]}
-                  onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: v.variation.id } })}
-                >
-                  <ThemedText style={styles.variationName}>{v.variation.title}</ThemedText>
-                  <IconSymbol name="chevron.right" size={16} color={theme.icon} />
-                </TouchableOpacity>
-              ))}
+            <Section title="Variations" icon="dumbbell.fill">
+              <View style={styles.variationsGrid}>
+                {exercise.variations.map((v: any) => (
+                  <TouchableOpacity 
+                    key={v.variation.id} 
+                    style={[styles.variationCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                    onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: v.variation.id } })}
+                  >
+                    <ThemedText style={styles.variationName} numberOfLines={1}>{v.variation.title}</ThemedText>
+                    <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.5 }} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </Section>
           )}
         </View>
@@ -222,18 +215,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   mediaContainer: {
-    paddingTop: 60,
     width: width,
-    height: width * 0.8,
+    height: width * 0.9,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
   gif: {
-    width: '100%',
-    height: '100%',
+    width: '90%',
+    height: '90%',
   },
   mediaPlaceholder: {
     flex: 1,
@@ -243,83 +240,105 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   content: {
-    padding: 20,
+    padding: 24,
+    marginTop: -32,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+  },
+  titleSection: {
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
-    fontFamily: Fonts.rounded,
-    marginBottom: 16,
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -1,
+    marginBottom: 12,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    gap: 8,
+  },
+  tag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    opacity: 0.8,
   },
   overview: {
-    lineHeight: 22,
-    fontSize: 15,
-    opacity: 0.7,
-    marginBottom: 24,
-  },
-  musclesSectionContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  musclesList: {
-    flex: 1,
-    gap: 12,
+    lineHeight: 24,
+    fontSize: 16,
+    opacity: 0.6,
+    marginBottom: 8,
   },
   musclesImageView: {
-    width: width,
-    height: width * 0.5,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 8,
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   muscleImage: {
     width: '100%',
     height: '100%',
   },
+  musclesSectionContainer: {
+    width: '100%',
+  },
+  musclesList: {
+    gap: 16,
+  },
+  infoBox: {
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
   bulletItem: {
     flexDirection: 'row',
-    marginBottom: 8,
-    paddingRight: 16,
+    alignItems: 'flex-start',
   },
   bulletSymbol: {
-    marginRight: 8,
+    marginRight: 10,
     fontSize: 16,
-    color: '#FF3B30',
+    fontWeight: 'bold',
   },
   bulletText: {
     flex: 1,
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
     opacity: 0.8,
   },
-  emptyText: {
-    fontSize: 14,
-    opacity: 0.5,
-    fontStyle: 'italic',
-    marginVertical: 4,
-  },
-  musclesGrid: {
-    gap: 16,
+  variationsGrid: {
+    gap: 12,
   },
   variationCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   variationName: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyText: {
+    opacity: 0.4,
+    fontStyle: 'italic',
   },
   backButton: {
     marginTop: 16,
-    padding: 10,
+    padding: 12,
   },
 });

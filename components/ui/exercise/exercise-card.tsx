@@ -23,8 +23,8 @@ export function ExerciseCard({ title, overview, gifUrl, onPress, muscleGroups }:
       style={[
         styles.exerciseCard, 
         { 
-          backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF',
-          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+          backgroundColor: theme.card,
+          borderColor: theme.border,
         }
       ]}
       onPress={onPress}
@@ -43,20 +43,20 @@ export function ExerciseCard({ title, overview, gifUrl, onPress, muscleGroups }:
       <View style={styles.exerciseInfo}>
         <View style={styles.titleRow}>
           <ThemedText type="defaultSemiBold" style={styles.exerciseTitle} numberOfLines={1}>{title}</ThemedText>
-          <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3 }} />
+          <View style={styles.chevronWrapper}>
+            <IconSymbol name="chevron.right" size={12} color={theme.icon} style={{ opacity: 0.3 }} />
+          </View>
         </View>
 
         <View style={styles.metaRow}>
           {muscleGroups && muscleGroups.length > 0 && (
-            <View style={[styles.muscleBadge, { backgroundColor: theme.tint + '10' }]}>
-              <ThemedText style={[styles.muscleText, { color: theme.tint }]}>{muscleGroups[0].name}</ThemedText>
+            <View style={[styles.muscleBadge, { backgroundColor: theme.tint + '15' }]}>
+              <ThemedText style={[styles.muscleText, { color: theme.tint }]}>{muscleGroups[0].name.toUpperCase()}</ThemedText>
             </View>
           )}
-          {overview ? (
-            <ThemedText numberOfLines={2} style={styles.exerciseOverview}>{overview}</ThemedText>
-          ) : (
-            <ThemedText style={[styles.exerciseOverview, { fontStyle: 'italic' }]}>No description available</ThemedText>
-          )}
+          <ThemedText numberOfLines={2} style={styles.exerciseOverview}>
+            {overview || 'No description provided for this exercise.'}
+          </ThemedText>
         </View>
       </View>
     </TouchableOpacity>
@@ -67,24 +67,18 @@ const styles = StyleSheet.create({
   exerciseCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
-    padding: 12,
-    marginBottom: 16,
-    gap: 16,
+    borderRadius: 16,
+    padding: 10,
+    marginBottom: 10,
+    gap: 12,
     borderWidth: 1,
-    // Modern shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 3,
   },
   imageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
+    width: 72,
+    height: 72,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F9F9FB',
+    backgroundColor: '#fff', // White background for GIFs
   },
   exerciseImage: {
     width: '100%',
@@ -95,12 +89,13 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   exerciseInfo: {
     flex: 1,
-    height: 80,
+    // height: 72,
     justifyContent: 'space-between',
-    paddingVertical: 2,
+    paddingVertical: 1,
   },
   titleRow: {
     flexDirection: 'row',
@@ -108,32 +103,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   exerciseTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     flex: 1,
-    marginRight: 8,
+    marginRight: 6,
+  },
+  chevronWrapper: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   metaRow: {
-    gap: 6,
+    gap: 4,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   muscleBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
   },
   muscleText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontSize: 9,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   exerciseOverview: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     opacity: 0.5,
-  },
-  chevronContainer: {
-    display: 'none', // Removed in favor of chevron in title row
   },
 });

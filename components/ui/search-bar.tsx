@@ -1,4 +1,4 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React from 'react';
 import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
@@ -34,17 +34,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(142, 142, 147, 0.12)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   icon: {
-    marginRight: 8,
+    marginRight: 10,
+    opacity: 0.5,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: Fonts.sans,
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

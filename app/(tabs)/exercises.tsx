@@ -8,7 +8,7 @@ import { ExerciseCard } from '@/components/ui/exercise/exercise-card';
 import { FilterChip } from '@/components/ui/filter-chip';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SearchBar } from '@/components/ui/search-bar';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useExercisesViewModel } from '@/view-models/use-exercises-view-model';
 
@@ -44,15 +44,13 @@ export default function ExercisesScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
+        <View style={styles.headerTop}>
           <View>
-            <ThemedText style={styles.greetingText}>Explore Moves</ThemedText>
-            <ThemedText type="title" style={styles.headerTitle}>Exercises</ThemedText>
+            <ThemedText style={styles.greetingText}>Build your</ThemedText>
+            <ThemedText style={styles.headerTitle}>Exercise Library</ThemedText>
           </View>
-          <View style={[styles.countBadge, { backgroundColor: theme.tint + '15' }]}>
-            <ThemedText style={[styles.countText, { color: theme.tint }]}>
-              {exerciseList.length}
-            </ThemedText>
+          <View style={[styles.profileButton, { backgroundColor: theme.card }]}>
+            <IconSymbol name="person.fill" size={20} color={theme.tint} />
           </View>
         </View>
         
@@ -60,7 +58,7 @@ export default function ExercisesScreen() {
           <SearchBar 
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search by name, muscle or equipment..."
+            placeholder="Search 1,200+ exercises..."
           />
         </View>
       </View>
@@ -84,29 +82,6 @@ export default function ExercisesScreen() {
                 label={mg} 
                 active={selectedMuscleGroup === mg} 
                 onPress={() => setSelectedMuscleGroup(mg)} 
-              />
-            ))}
-          </ScrollView>
-        </View>
-        
-        <View style={styles.filterRow}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={styles.filterScroll}
-            decelerationRate="fast"
-          >
-            <FilterChip 
-              label="All Equipment" 
-              active={!selectedEquipment} 
-              onPress={() => setSelectedEquipment(null)} 
-            />
-            {equipmentList.map(eq => (
-              <FilterChip 
-                key={eq} 
-                label={eq} 
-                active={selectedEquipment === eq} 
-                onPress={() => setSelectedEquipment(eq)} 
               />
             ))}
           </ScrollView>
@@ -148,80 +123,69 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
-    gap: 20,
+    gap: 16,
   },
-  titleRow: {
+  headerTop: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   greetingText: {
-    fontSize: 14,
-    fontWeight: '600',
-    opacity: 0.5,
-    marginBottom: -4,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontSize: 16,
+    opacity: 0.6,
+    fontWeight: '500',
   },
   headerTitle: {
-    fontFamily: Fonts.rounded,
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: '800',
+    marginTop: 2,
   },
-  countBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 6,
-  },
-  countText: {
-    fontSize: 14,
-    fontWeight: '700',
+  profileButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   searchWrapper: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 2,
+    marginTop: 4,
   },
   filterSection: {
     paddingBottom: 16,
-    gap: 8,
   },
   filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 0,
   },
   filterScroll: {
     paddingHorizontal: 24,
     gap: 8,
   },
-  listContent: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-  },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    padding: 40,
   },
   loadingText: {
-    opacity: 0.4,
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.5,
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  listContent: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   emptyContainer: {
-    paddingTop: 80,
     alignItems: 'center',
+    paddingTop: 80,
     paddingHorizontal: 40,
   },
   emptyIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -229,13 +193,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '700',
-    textAlign: 'center',
     marginBottom: 8,
   },
   emptySubText: {
-    fontSize: 15,
-    opacity: 0.4,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 22,
+    opacity: 0.5,
+    lineHeight: 20,
   },
 });
