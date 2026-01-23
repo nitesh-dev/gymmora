@@ -46,6 +46,49 @@ export const exerciseVariations = sqliteTable('exercise_variations', {
     pk: primaryKey({ columns: [t.exerciseId, t.variationId] }),
 }));
 
+// WORKOUT PLANS, DAYS, AND LOGS
+
+export const workoutPlans = sqliteTable('workout_plans', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    name: text('name').notNull(),
+    type: text('type', { enum: ['SYSTEM', 'CUSTOM'] }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
+export const planDays = sqliteTable('plan_days', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    planId: integer('plan_id').notNull().references(() => workoutPlans.id, { onDelete: 'cascade' }),
+    dayOfWeek: integer('day_of_week').notNull(), // 0=Sun ... 6=Sat
+    dayLabel: text('day_label'), // Push / Pull / Legs etc.
+    isRestDay: integer('is_rest_day', { mode: 'boolean' }).notNull().default(false),
+});
+
+export const planDayExercises = sqliteTable('plan_day_exercises', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    planDayId: integer('plan_day_id').notNull().references(() => planDays.id, { onDelete: 'cascade' }),
+    exerciseId: integer('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+    sets: integer('sets').notNull(),
+    reps: integer('reps').notNull(),
+    exerciseOrder: integer('exercise_order').notNull(),
+});
+
+export const workoutLogs = sqliteTable('workout_logs', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    planDayId: integer('plan_day_id').references(() => planDays.id, { onDelete: 'set null' }),
+    date: integer('date', { mode: 'timestamp' }).notNull(),
+    duration: integer('duration'), // total time in seconds
+    status: text('status', { enum: ['COMPLETED', 'ABANDONED'] }).notNull(),
+});
+
+export const setLogs = sqliteTable('set_logs', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    workoutLogId: integer('workout_log_id').notNull().references(() => workoutLogs.id, { onDelete: 'cascade' }),
+    exerciseId: integer('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+    repsDone: integer('reps_done').notNull(),
+    weight: text('weight').notNull(), // text to support units or decimals
+    setIndex: integer('set_index').notNull(),
+});
+
 // RELATIONS
 
 export const exercisesRelations = relations(exercises, ({ many }) => ({
@@ -94,5 +137,48 @@ export const exerciseVariationsRelations = relations(exerciseVariations, ({ one 
         fields: [exerciseVariations.variationId],
         references: [exercises.id],
         relationName: 'variation_exercises',
+    }),
+}));
+
+export const workoutPlansRelations = relations(workoutPlans, ({ many }) => ({
+    days: many(planDays),
+}));
+
+export const planDaysRelations = relations(planDays, ({ one, many }) => ({
+    plan: one(workoutPlans, {
+        fields: [planDays.planId],
+        references: [workoutPlans.id],
+    }),
+    exercises: many(planDayExercises),
+    logs: many(workoutLogs),
+}));
+
+export const planDayExercisesRelations = relations(planDayExercises, ({ one }) => ({
+    planDay: one(planDays, {
+        fields: [planDayExercises.planDayId],
+        references: [planDays.id],
+    }),
+    exercise: one(exercises, {
+        fields: [planDayExercises.exerciseId],
+        references: [exercises.id],
+    }),
+}));
+
+export const workoutLogsRelations = relations(workoutLogs, ({ one, many }) => ({
+    planDay: one(planDays, {
+        fields: [workoutLogs.planDayId],
+        references: [planDays.id],
+    }),
+    sets: many(setLogs),
+}));
+
+export const setLogsRelations = relations(setLogs, ({ one }) => ({
+    workoutLog: one(workoutLogs, {
+        fields: [setLogs.workoutLogId],
+        references: [workoutLogs.id],
+    }),
+    exercise: one(exercises, {
+        fields: [setLogs.exerciseId],
+        references: [exercises.id],
     }),
 }));
