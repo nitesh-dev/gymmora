@@ -11,16 +11,24 @@ interface ExerciseCardProps {
   overview?: string;
   gifUrl?: string | null;
   onPress: () => void;
+  muscleGroups?: { name: string }[];
 }
 
-export function ExerciseCard({ title, overview, gifUrl, onPress }: ExerciseCardProps) {
+export function ExerciseCard({ title, overview, gifUrl, onPress, muscleGroups }: ExerciseCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
 
   return (
     <TouchableOpacity 
-      style={[styles.exerciseCard, { backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7' }]}
+      style={[
+        styles.exerciseCard, 
+        { 
+          backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF',
+          borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+        }
+      ]}
       onPress={onPress}
+      activeOpacity={0.7}
     >
       <View style={styles.imageContainer}>
         {gifUrl ? (
@@ -31,11 +39,26 @@ export function ExerciseCard({ title, overview, gifUrl, onPress }: ExerciseCardP
           </View>
         )}
       </View>
+      
       <View style={styles.exerciseInfo}>
-        <ThemedText type="defaultSemiBold" style={styles.exerciseTitle}>{title}</ThemedText>
-        <ThemedText numberOfLines={1} style={styles.exerciseOverview}>{overview}</ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText type="defaultSemiBold" style={styles.exerciseTitle} numberOfLines={1}>{title}</ThemedText>
+          <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3 }} />
+        </View>
+
+        <View style={styles.metaRow}>
+          {muscleGroups && muscleGroups.length > 0 && (
+            <View style={[styles.muscleBadge, { backgroundColor: theme.tint + '10' }]}>
+              <ThemedText style={[styles.muscleText, { color: theme.tint }]}>{muscleGroups[0].name}</ThemedText>
+            </View>
+          )}
+          {overview ? (
+            <ThemedText numberOfLines={2} style={styles.exerciseOverview}>{overview}</ThemedText>
+          ) : (
+            <ThemedText style={[styles.exerciseOverview, { fontStyle: 'italic' }]}>No description available</ThemedText>
+          )}
+        </View>
       </View>
-      <IconSymbol name="chevron.right" size={16} color={theme.icon} />
     </TouchableOpacity>
   );
 }
@@ -44,17 +67,24 @@ const styles = StyleSheet.create({
   exerciseCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 12,
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: 16,
+    gap: 16,
+    borderWidth: 1,
+    // Modern shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
   },
   imageContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
+    width: 80,
+    height: 80,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9FB',
   },
   exerciseImage: {
     width: '100%',
@@ -65,18 +95,45 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   exerciseInfo: {
     flex: 1,
-    justifyContent: 'center',
-    gap: 2,
+    height: 80,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   exerciseTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 8,
+  },
+  metaRow: {
+    gap: 6,
+  },
+  muscleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  muscleText: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   exerciseOverview: {
     fontSize: 13,
-    opacity: 0.6,
+    lineHeight: 18,
+    opacity: 0.5,
+  },
+  chevronContainer: {
+    display: 'none', // Removed in favor of chevron in title row
   },
 });

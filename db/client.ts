@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 import * as schema from './schema';
 
-const DB_NAME = 'gymmoradb';
+const DB_NAME = 'gymmoradb2';
 
 export const expoDb = Platform.OS === 'web' 
   ? null 

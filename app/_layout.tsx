@@ -1,3 +1,4 @@
+import { SeedService } from '@/services/seed-service';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
@@ -55,15 +56,20 @@ function AppContent({ db }: { db: any }) {
   const { success, error } = useMigrations(db, migrations);
 
   useEffect(() => {
-    if (success) {
-      console.log('Migrations completed successfully');
-      SplashScreen.hideAsync();
+    async function initializeData() {
+      if (success) {
+        console.log('Migrations completed successfully');
+        await SeedService.seedIfNeeded(db);
+        SplashScreen.hideAsync();
+      }
     }
+    initializeData();
+
     if (error) {
       console.error('Migration failed:', error);
       SplashScreen.hideAsync();
     }
-  }, [success, error]);
+  }, [success, error, db]);
 
   if (!success && !error) {
     return null;

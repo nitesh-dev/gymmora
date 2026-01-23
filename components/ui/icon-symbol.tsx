@@ -23,6 +23,8 @@ const MAPPING = {
   'calendar.badge.plus': 'event',
   'clock.arrow.circlepath': 'history',
   'magnifyingglass': 'search',
+  'bolt.fill': 'bolt',
+  'checkmark.circle.fill': 'check-circle',
 } as IconMapping;
 
 /**

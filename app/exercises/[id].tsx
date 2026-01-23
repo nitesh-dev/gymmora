@@ -90,32 +90,100 @@ export default function ExerciseDetailScreen() {
 
           <ThemedText style={styles.overview}>{exercise.overview}</ThemedText>
 
-          <Section title="Instructions">
-            {exercise.content
-              ?.filter((c: any) => c.contentType === 'step')
-              .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
-              .map((c: any) => (
-                <InstructionStep 
-                  key={c.id} 
-                  stepNumber={c.orderIndex + 1} 
-                  text={c.contentText} 
-                />
-              ))}
+          {/* Targeted Muscles Image & List Section */}
+          <Section title="Targeted Muscles">
+            {exercise.musclesWorkedImg && (
+                <View style={styles.musclesImageView}>
+                  <Image 
+                    source={{ uri: exercise.musclesWorkedImg }} 
+                    style={styles.muscleImage} 
+                    contentFit="contain"
+                  />
+                </View>
+              )}
+            <View style={styles.musclesSectionContainer}>
+              <View style={styles.musclesList}>
+                {exercise.musclesWorked && exercise.musclesWorked.length > 0 ? (
+                  exercise.musclesWorked.map((m: any) => (
+                    <ProgressBar 
+                      key={m.id} 
+                      progress={m.percentage} 
+                      label={m.name} 
+                    />
+                  ))
+                ) : (
+                  <ThemedText style={styles.emptyText}>No muscle data available.</ThemedText>
+                )}
+              </View>
+              
+              
+            </View>
           </Section>
 
-          {exercise.musclesWorked && exercise.musclesWorked.length > 0 && (
-            <Section title="Muscles Targeted">
-              <View style={styles.musclesGrid}>
-                {exercise.musclesWorked.map((m: any) => (
-                  <ProgressBar 
-                    key={m.id} 
-                    progress={m.percentage} 
-                    label={m.name} 
+          <Section title="How to Perform">
+            {exercise.content?.filter((c: any) => c.contentType === 'step').length > 0 ? (
+              exercise.content
+                ?.filter((c: any) => c.contentType === 'step')
+                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                .map((c: any) => (
+                  <InstructionStep 
+                    key={c.id} 
+                    stepNumber={c.orderIndex + 1} 
+                    text={c.contentText} 
                   />
-                ))}
-              </View>
-            </Section>
-          )}
+                ))
+            ) : (
+              <ThemedText style={styles.emptyText}>No instructions provided.</ThemedText>
+            )}
+          </Section>
+
+          <Section title="Tips">
+            {exercise.content?.filter((c: any) => c.contentType === 'tip').length > 0 ? (
+              exercise.content
+                ?.filter((c: any) => c.contentType === 'tip')
+                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                .map((c: any) => (
+                  <View key={c.id} style={styles.bulletItem}>
+                    <ThemedText style={styles.bulletSymbol}>•</ThemedText>
+                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
+                  </View>
+                ))
+            ) : (
+              <ThemedText style={styles.emptyText}>No tips provided for this exercise.</ThemedText>
+            )}
+          </Section>
+
+          <Section title="Common Mistakes">
+            {exercise.content?.filter((c: any) => c.contentType === 'mistake').length > 0 ? (
+              exercise.content
+                ?.filter((c: any) => c.contentType === 'mistake')
+                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                .map((c: any) => (
+                  <View key={c.id} style={styles.bulletItem}>
+                    <ThemedText style={styles.bulletSymbol}>✕</ThemedText>
+                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
+                  </View>
+                ))
+            ) : (
+              <ThemedText style={styles.emptyText}>No common mistakes listed.</ThemedText>
+            )}
+          </Section>
+
+          <Section title="Benefits">
+            {exercise.content?.filter((c: any) => c.contentType === 'benefit').length > 0 ? (
+              exercise.content
+                ?.filter((c: any) => c.contentType === 'benefit')
+                .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                .map((c: any) => (
+                  <View key={c.id} style={styles.bulletItem}>
+                    <IconSymbol name="checkmark.circle.fill" size={16} color={Colors.light.tint} style={{ marginRight: 8 }} />
+                    <ThemedText style={styles.bulletText}>{c.contentText}</ThemedText>
+                  </View>
+                ))
+            ) : (
+              <ThemedText style={styles.emptyText}>No benefits data available.</ThemedText>
+            )}
+          </Section>
 
           {exercise.variations && exercise.variations.length > 0 && (
             <Section title="Variations">
@@ -156,6 +224,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   mediaContainer: {
+    paddingTop: 60,
     width: width,
     height: width * 0.8,
     backgroundColor: '#fff',
@@ -191,6 +260,48 @@ const styles = StyleSheet.create({
     fontSize: 15,
     opacity: 0.7,
     marginBottom: 24,
+  },
+  musclesSectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  musclesList: {
+    flex: 1,
+    gap: 12,
+  },
+  musclesImageView: {
+    width: width,
+    height: width * 0.5,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 8,
+  },
+  muscleImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingRight: 16,
+  },
+  bulletSymbol: {
+    marginRight: 8,
+    fontSize: 16,
+    color: '#FF3B30',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 20,
+    opacity: 0.8,
+  },
+  emptyText: {
+    fontSize: 14,
+    opacity: 0.5,
+    fontStyle: 'italic',
+    marginVertical: 4,
   },
   musclesGrid: {
     gap: 16,
