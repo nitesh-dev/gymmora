@@ -8,9 +8,8 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -181,16 +180,17 @@ export default function CreatePlanScreen() {
             <View style={styles.dayEditorHeader}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={styles.selectedDayName}>{DAYS_SHORT[selectedDayIndex]} Mission</ThemedText>
-                <TextInput
+                <Input
                   style={[
                     styles.dayLabelInput, 
                     { 
                       color: theme.text,
                       borderBottomColor: theme.border,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
                     }
                   ]}
                   placeholder="e.g. Push, Pull, Legs..."
-                  placeholderTextColor={theme.icon + '40'}
                   value={selectedDay.dayLabel}
                   onChangeText={(val) => updateDayLabel(selectedDayIndex, val)}
                 />

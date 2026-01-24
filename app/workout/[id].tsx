@@ -1,10 +1,12 @@
+import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Input } from '@/components/ui/input';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWorkoutSessionViewModel } from '@/view-models/use-workout-session-view-model';
@@ -91,29 +93,45 @@ export default function WorkoutSessionScreen() {
       >
         {planDay?.exercises.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any) => (
           <View key={ex.id} style={[styles.exerciseCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={styles.exerciseHeader}>
-              <View style={{ flex: 1 }}>
-                <ThemedText type="defaultSemiBold" style={styles.exerciseTitle}>
-                  {ex.exercise.title}
-                </ThemedText>
-                <ThemedText style={styles.exerciseMeta}>
-                  {ex.sets} sets • {ex.reps} reps
-                </ThemedText>
+            <TouchableOpacity 
+              onPress={() => router.push(`/exercises/${ex.exerciseId}` as any)}
+              activeOpacity={0.7}
+              style={styles.exerciseHeader}
+            >
+              <View style={styles.exerciseMainInfo}>
+                <View style={styles.gifContainer}>
+                  {ex.exercise.gifUrl ? (
+                    <Image source={{ uri: ex.exercise.gifUrl }} style={styles.exerciseGif} contentFit="cover" />
+                  ) : (
+                    <View style={[styles.placeholderGif, { backgroundColor: theme.border + '30' }]}>
+                      <IconSymbol name="dumbbell.fill" size={20} color={theme.icon} />
+                    </View>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText type="defaultSemiBold" style={styles.exerciseTitle}>
+                    {ex.exercise.title}
+                  </ThemedText>
+                  <ThemedText style={styles.exerciseMeta}>
+                    {ex.sets} sets • {ex.reps} reps
+                  </ThemedText>
+                </View>
+                <IconSymbol name="chevron.right" size={16} color={theme.icon} style={{ opacity: 0.3 }} />
               </View>
-              <TouchableOpacity 
-                onPress={() => router.push(`/exercises/${ex.exerciseId}` as any)}
-                style={[styles.infoButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
-              >
-                <IconSymbol name="magnifyingglass" size={18} color={theme.icon} />
-              </TouchableOpacity>
-            </View>
+              
+              {ex.exercise.overview && (
+                <ThemedText style={styles.exerciseOverview} numberOfLines={2}>
+                  {ex.exercise.overview}
+                </ThemedText>
+              )}
+            </TouchableOpacity>
             
             <View style={styles.setsTable}>
               <View style={styles.setsHeader}>
-                <ThemedText style={styles.setHeaderLabel}>SET</ThemedText>
-                <ThemedText style={styles.setHeaderLabel}>KG</ThemedText>
-                <ThemedText style={styles.setHeaderLabel}>REPS</ThemedText>
-                <View style={{ width: 44 }} />
+                <ThemedText style={[styles.setHeaderLabel, { width: 32 }]}>SET</ThemedText>
+                <ThemedText style={[styles.setHeaderLabel, { flex: 1 }]}>KG</ThemedText>
+                <ThemedText style={[styles.setHeaderLabel, { flex: 1 }]}>REPS</ThemedText>
+                <View style={{ width: 48 }} />
               </View>
 
               {workoutData[ex.exerciseId]?.map((set, index) => (
@@ -130,24 +148,22 @@ export default function WorkoutSessionScreen() {
                     </ThemedText>
                   </View>
                   
-                  <TextInput
-                    style={[styles.setInput, { color: theme.text, backgroundColor: 'rgba(255,255,255,0.03)' }]}
+                  <Input
+                    containerStyle={{ flex: 1, marginHorizontal: 4 }}
+                    style={styles.setInput}
                     placeholder="0"
-                    placeholderTextColor={theme.icon + '60'}
                     keyboardType="numeric"
                     value={set.weight}
                     onChangeText={(text) => updateSet(ex.exerciseId, index, { weight: text })}
                     editable={!set.isCompleted}
                   />
 
-                  <TextInput
-                    style={[styles.setInput, { color: theme.text, backgroundColor: 'rgba(255,255,255,0.03)' }]}
-                    placeholder={set.reps.toString()}
-                    placeholderTextColor={theme.icon + '60'}
-                    keyboardType="numeric"
-                    value={set.reps.toString()}
-                    onChangeText={(text) => updateSet(ex.exerciseId, index, { reps: parseInt(text) || 0 })}
-                    editable={!set.isCompleted}
+                  <Input
+                    containerStyle={{ flex: 1, marginHorizontal: 4 }}
+                    style={[styles.setInput, { opacity: 0.6 }]}
+                    placeholder="0"
+                    value={set.reps}
+                    editable={false}
                   />
 
                   <TouchableOpacity 
@@ -237,10 +253,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: 20,
+    gap: 12,
+  },
+  exerciseMainInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  gifContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#FFF',
+  },
+  exerciseGif: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderGif: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   exerciseTitle: {
     fontSize: 18,
@@ -251,23 +287,21 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     marginTop: 2,
   },
-  infoButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  exerciseOverview: {
+    fontSize: 13,
+    opacity: 0.6,
+    lineHeight: 18,
   },
   setsTable: {
     gap: 4,
   },
   setsHeader: {
     flexDirection: 'row',
-    paddingHorizontal: 4,
+    alignItems: 'center',
+    paddingHorizontal: 6,
     marginBottom: 8,
   },
   setHeaderLabel: {
-    flex: 1,
     fontSize: 11,
     fontWeight: '800',
     opacity: 0.4,
@@ -297,12 +331,15 @@ const styles = StyleSheet.create({
   },
   setInput: {
     flex: 1,
-    height: 38,
-    marginHorizontal: 4,
+    height: 40,
     borderRadius: 10,
     textAlign: 'center',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 0,
   },
   checkButton: {
     width: 44,

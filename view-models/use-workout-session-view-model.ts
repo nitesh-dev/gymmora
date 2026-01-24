@@ -32,7 +32,7 @@ export function useWorkoutSessionViewModel(planDayId: number) {
     exercises.forEach((ex: any) => {
       initialData[ex.exerciseId] = Array.from({ length: ex.sets }).map((_, i) => ({
         setIndex: i,
-        reps: ex.reps,
+        reps: ex.reps.toString(),
         weight: '',
         isCompleted: false,
       }));
@@ -80,7 +80,7 @@ export function useWorkoutSessionViewModel(planDayId: number) {
           if (set.isCompleted) {
             setsToSave.push({
               exerciseId: parseInt(exerciseId),
-              reps: set.reps,
+              reps: parseInt(set.reps) || 0,
               weight: set.weight,
               setIndex: set.setIndex,
             });

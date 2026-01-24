@@ -55,6 +55,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     borderWidth: 1.5,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   errorText: {
     color: '#FF3B30',
