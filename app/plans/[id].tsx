@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -28,60 +29,47 @@ export default function PlanDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerTitle: plan?.name || '',
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerLeft: () => (
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <CustomHeader
+        title={plan?.name}
+        rightAction={plan && plan.type === 'CUSTOM' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity 
-              onPress={() => router.back()} 
+              onPress={() => {
+                Alert.alert(
+                  'Delete Plan',
+                  'Are you sure you want to delete this plan?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { 
+                      text: 'Delete', 
+                      style: 'destructive',
+                      onPress: async () => {
+                        await planService.deletePlan(plan.id);
+                        router.back();
+                      }
+                    },
+                  ]
+                );
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,59,48,0.1)', marginRight: 8 }]}
+            >
+              <IconSymbol name="trash.fill" size={20} color="#FF3B30" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => router.push({
+                pathname: '/plans/create',
+                params: { id: plan.id }
+              })}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
             >
-              <IconSymbol name="chevron.left" size={24} color={theme.text} />
+              <IconSymbol name="pencil.fill" size={20} color={theme.text} />
             </TouchableOpacity>
-          ),
-          headerRight: () => plan && plan.type === 'CUSTOM' ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 8 }}>
-              <TouchableOpacity 
-                onPress={() => {
-                  console.log('Delete Plan Pressed');
-                  Alert.alert(
-                    'Delete Plan',
-                    'Are you sure you want to delete this plan?',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { 
-                        text: 'Delete', 
-                        style: 'destructive',
-                        onPress: async () => {
-                          await planService.deletePlan(plan.id);
-                          router.back();
-                        }
-                      },
-                    ]
-                  );
-                }}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,59,48,0.1)', marginRight: 8 }]}
-              >
-                <IconSymbol name="trash.fill" size={20} color="#FF3B30" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={() => router.push({
-                  pathname: '/plans/create',
-                  params: { id: plan.id }
-                })}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
-              >
-                <IconSymbol name="pencil.fill" size={20} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-          ) : null,
-        }} 
+          </View>
+        ) : null}
       />
 
       {isLoading ? (

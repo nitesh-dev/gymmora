@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -56,16 +57,10 @@ export default function WorkoutLogDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{
-          headerTitle: log.planDay?.dayLabel || 'Workout Summary',
-          headerTitleStyle: { fontWeight: '800' },
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-              <IconSymbol name="chevron.left" size={24} color={theme.text} />
-            </TouchableOpacity>
-          ),
-        }}
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <CustomHeader
+        title={log.planDay?.dayLabel || 'Workout Summary'}
       />
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>

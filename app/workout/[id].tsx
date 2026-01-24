@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Input } from '@/components/ui/input';
 import { Colors } from '@/constants/theme';
@@ -65,9 +66,19 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{
-          headerTitle: planDay?.dayLabel || 'Workout',
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <CustomHeader
+        title={planDay?.dayLabel || 'Workout'}
+        onBackPress={() => {
+          Alert.alert(
+            'Quit Workout',
+            'Are you sure you want to quit this workout session? Progress will not be saved.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Quit', style: 'destructive', onPress: () => router.back() }
+            ]
+          );
         }}
       />
 

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -67,19 +68,21 @@ export default function PlansScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <View>
-          <ThemedText style={styles.greetingText}>Optimize your</ThemedText>
-          <ThemedText style={styles.headerTitle}>Training Plans</ThemedText>
-        </View>
-        <TouchableOpacity 
-          style={[styles.createButton, { backgroundColor: theme.tint }]}
-          onPress={() => router.push('/plans/create' as any)}
-        >
-          <IconSymbol name="plus" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+    <ThemedView style={styles.container}>
+      <CustomHeader 
+        title="Training Plans" 
+        showBackButton={false}
+        alignTitle="left"
+        variant="rounded"
+        rightAction={
+          <TouchableOpacity 
+            style={[styles.createButton, { backgroundColor: theme.tint }]}
+            onPress={() => router.push('/plans/create' as any)}
+          >
+            <IconSymbol name="plus" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        }
+      />
 
       {isLoading && plans.length === 0 ? (
         <View style={styles.loaderContainer}>
@@ -119,35 +122,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  greetingText: {
-    fontSize: 16,
-    opacity: 0.6,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  filterSection: {
-    paddingBottom: 20,
-  },
-  filterScroll: {
-    paddingHorizontal: 24,
-    gap: 8,
-  },
   createButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#2C9AFF',

@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Section } from '@/components/ui/section';
 import { Colors } from '@/constants/theme';
@@ -33,23 +34,26 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <CustomHeader 
+        title="Hello, Jarvis 👋" 
+        showBackButton={false}
+        alignTitle="left"
+        variant="rounded"
+        rightAction={
+          <TouchableOpacity style={[styles.profileButton, { backgroundColor: theme.background, borderColor: theme.border }]}>
+            <IconSymbol name="person.fill" size={20} color={theme.icon} />
+          </TouchableOpacity>
+        }
+      >
+        <ThemedText style={styles.dateText}>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </ThemedText>
+      </CustomHeader>
+
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor={theme.tint} />}
       >
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View>
-            <ThemedText style={styles.greeting}>Hello, Jarvis 👋</ThemedText>
-            <ThemedText style={styles.dateText}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            </ThemedText>
-          </View>
-          <TouchableOpacity style={[styles.profileButton, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <IconSymbol name="person.fill" size={20} color={theme.icon} />
-          </TouchableOpacity>
-        </View>
-
         {/* Hero Card: Today's Workout */}
         <Section title="Today's Workout">
           {todayWorkout ? (
@@ -159,23 +163,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 60,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    paddingTop: 8,
   },
   dateText: {
     fontSize: 14,
     opacity: 0.6,
-    marginTop: 2,
+    marginTop: -4,
+    marginBottom: 8,
   },
   profileButton: {
     width: 44,

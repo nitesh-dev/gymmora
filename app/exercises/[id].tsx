@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { InstructionStep } from '@/components/ui/exercise/instruction-step';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ProgressBar } from '@/components/ui/progress-bar';
@@ -49,35 +50,30 @@ export default function ExerciseDetailScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Custom Header */}
-      <View style={[styles.customHeader, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          style={styles.headerCircleButton}
-          activeOpacity={0.7}
-        >
-          <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        <View style={styles.tabContainer}>
-          <TouchableOpacity 
-            onPress={() => setActiveTab('instructions')}
-            style={[styles.tabButton, activeTab === 'instructions' && styles.activeTabButton]}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 5 }}
-          >
-            <ThemedText style={[styles.tabText, activeTab === 'instructions' && styles.activeTabText]}>Guide</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setActiveTab('stats')}
-            style={[styles.tabButton, activeTab === 'stats' && styles.activeTabButton]}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
-          >
-            <ThemedText style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>Stats</ThemedText>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <CustomHeader
+        transparent
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}
+        rightAction={
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              onPress={() => setActiveTab('instructions')}
+              style={[styles.tabButton, activeTab === 'instructions' && styles.activeTabButton]}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 5 }}
+            >
+              <ThemedText style={[styles.tabText, activeTab === 'instructions' && styles.activeTabText]}>Guide</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => setActiveTab('stats')}
+              style={[styles.tabButton, activeTab === 'stats' && styles.activeTabButton]}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
+            >
+              <ThemedText style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>Stats</ThemedText>
+            </TouchableOpacity>
+          </View>
+        }
+      />
       
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.mediaContainer}>
@@ -274,27 +270,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
-  customHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  headerCircleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
-    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   mediaContainer: {
     width: width,

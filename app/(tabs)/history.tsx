@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -39,9 +40,12 @@ export default function HistoryScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 20, backgroundColor: theme.card }]}>
-        <ThemedText style={styles.headerTitle}>History</ThemedText>
-      </View>
+      <CustomHeader 
+        title="History" 
+        showBackButton={false} 
+        alignTitle="left"
+        variant="rounded"
+      />
 
       <SectionList
         sections={history}
@@ -146,19 +150,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
   listContent: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 100,
   },
   sectionHeader: {
     fontSize: 12,

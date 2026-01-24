@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { ExerciseSelectionCard } from '@/components/ui/exercise/exercise-selection-card';
 import { FilterChip } from '@/components/ui/filter-chip';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -68,220 +69,199 @@ export default function CreatePlanScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerTitle: planId ? (isLoading ? 'Loading Plan...' : 'Edit Plan') : 'Create Plan',
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
-            >
-              <IconSymbol name="chevron.left" size={24} color={theme.text} />
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <TouchableOpacity 
-              onPress={() => {
-                console.log('Save button pressed');
-                savePlan();
-              }}
-              disabled={isSaving}
-              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-              style={[
-                styles.headerSaveButton, 
-                { 
-                  backgroundColor: name.trim() ? theme.tint : 'rgba(255,255,255,0.05)',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                },
-                isSaving && { opacity: 0.7 }
-              ]}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <IconSymbol 
-                    name="paperplane.fill" 
-                    size={16} 
-                    color={name.trim() ? "#FFFFFF" : theme.icon} 
-                  />
-                  <ThemedText style={[styles.saveText, { color: name.trim() ? '#FFFFFF' : theme.icon }]}>
-                    {planId ? 'Update' : 'Save'}
-                  </ThemedText>
-                </>
-              )}
-            </TouchableOpacity>
-          ),
-        }} 
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <CustomHeader
+        title={planId ? (isLoading ? 'Loading Plan...' : 'Edit Plan') : 'Create Plan'}
+        rightAction={
+          <TouchableOpacity 
+            onPress={() => savePlan()}
+            disabled={isSaving}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            style={[
+              styles.headerSaveButton, 
+              { 
+                backgroundColor: name.trim() ? theme.tint : 'rgba(255,255,255,0.05)',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              },
+              isSaving && { opacity: 0.7 }
+            ]}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <IconSymbol 
+                  name="paperplane.fill" 
+                  size={16} 
+                  color={name.trim() ? "#FFFFFF" : theme.icon} 
+                />
+                <ThemedText style={[styles.saveText, { color: name.trim() ? '#FFFFFF' : theme.icon }]}>
+                  {planId ? 'Update' : 'Save'}
+                </ThemedText>
+              </>
+            )}
+          </TouchableOpacity>
+        }
       />
 
-      {isLoading ? (
-        <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <ActivityIndicator size="large" color={theme.tint} />
-        </ThemedView>
-      ) : (
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 40 }]}
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView 
-            contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 40 }]}
-            showsVerticalScrollIndicator={false}
-          >
-          {/* Plan Name */}
-          <View style={styles.section}>
-            <Input
-              label="PLAN NAME"
-              placeholder="e.g. Tactical Strength 2.0"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
+        {/* Plan Name */}
+        <View style={styles.section}>
+          <Input
+            label="PLAN NAME"
+            placeholder="e.g. Tactical Strength 2.0"
+            value={name}
+            onChangeText={setName}
+          />
+        </View>
 
-          {/* Day Selector */}
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>SCHEDULE</ThemedText>
-            <View style={styles.daySelector}>
-              {DAYS_SHORT.map((day, index) => (
-                <TouchableOpacity
-                  key={day}
-                  onPress={() => setSelectedDayIndex(index)}
-                  style={[
-                    styles.dayNode,
-                    selectedDayIndex === index && { backgroundColor: theme.tint, borderColor: theme.tint },
-                    selectedDayIndex !== index && { backgroundColor: theme.card, borderColor: theme.border }
-                  ]}
-                >
-                  <ThemedText style={[
-                    styles.dayNodeText,
-                    selectedDayIndex === index && { color: '#FFFFFF' }
-                  ]}>
-                    {day[0]}
-                  </ThemedText>
-                  {days[index].isRestDay && (
-                    <View style={styles.restDot} />
-                  )}
-                  {!days[index].isRestDay && days[index].exercises.length > 0 && (
-                    <View style={[styles.activeDot, { backgroundColor: theme.tint }]} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Selected Day Context */}
-          <View style={[styles.dayEditor, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={styles.dayEditorHeader}>
-              <View style={{ flex: 1 }}>
-                <ThemedText style={styles.selectedDayName}>{DAYS_SHORT[selectedDayIndex]} Mission</ThemedText>
-                <Input
-                  style={[
-                    styles.dayLabelInput, 
-                    { 
-                      color: theme.text,
-                      borderBottomColor: theme.border,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    }
-                  ]}
-                  placeholder="e.g. Push, Pull, Legs..."
-                  value={selectedDay.dayLabel}
-                  onChangeText={(val) => updateDayLabel(selectedDayIndex, val)}
-                />
-              </View>
-              <TouchableOpacity 
+        {/* Day Selector */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionLabel}>SCHEDULE</ThemedText>
+          <View style={styles.daySelector}>
+            {DAYS_SHORT.map((day, index) => (
+              <TouchableOpacity
+                key={day}
+                onPress={() => setSelectedDayIndex(index)}
                 style={[
-                  styles.restToggle, 
-                  { backgroundColor: selectedDay.isRestDay ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }
+                  styles.dayNode,
+                  selectedDayIndex === index && { backgroundColor: theme.tint, borderColor: theme.tint },
+                  selectedDayIndex !== index && { backgroundColor: theme.card, borderColor: theme.border }
                 ]}
-                onPress={() => toggleRestDay(selectedDayIndex)}
               >
                 <ThemedText style={[
-                  styles.restToggleText,
-                  { color: selectedDay.isRestDay ? theme.tint : theme.text }
+                  styles.dayNodeText,
+                  selectedDayIndex === index && { color: '#FFFFFF' }
                 ]}>
-                  {selectedDay.isRestDay ? 'REST DAY' : 'ACTIVE'}
+                  {day[0]}
                 </ThemedText>
+                {days[index].isRestDay && (
+                  <View style={styles.restDot} />
+                )}
+                {!days[index].isRestDay && days[index].exercises.length > 0 && (
+                  <View style={[styles.activeDot, { backgroundColor: theme.tint }]} />
+                )}
               </TouchableOpacity>
-            </View>
-
-            {!selectedDay.isRestDay && (
-              <View style={styles.exerciseSlotContainer}>
-                {selectedDay.exercises.map((ex, idx) => (
-                  <View key={ex.exerciseId} style={[styles.exerciseSlot, { borderColor: theme.border + '50' }]}>
-                    <View style={styles.slotHeader}>
-                      <View style={styles.slotTitleGroup}>
-                        <View style={[styles.slotIndex, { backgroundColor: theme.tint + '15' }]}>
-                          <ThemedText style={[styles.slotIndexText, { color: theme.tint }]}>{idx + 1}</ThemedText>
-                        </View>
-                        <ThemedText style={styles.slotName} numberOfLines={1}>{ex.title}</ThemedText>
-                      </View>
-                      <TouchableOpacity 
-                        onPress={() => removeExerciseFromDay(selectedDayIndex, ex.exerciseId)}
-                        style={styles.slotRemove}
-                      >
-                        <IconSymbol name="trash.fill" size={18} color="#FF3B30" />
-                      </TouchableOpacity>
-                    </View>
-                    
-                    <View style={styles.slotControls}>
-                      <Select
-                        label="Sets"
-                        options={[1, 2, 3, 4, 5]}
-                        value={ex.sets}
-                        onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, val, ex.reps)}
-                      />
-                      <Select
-                        label="Reps"
-                        options={[8, 12, 16, 20, 24, 28, 32]}
-                        value={ex.reps}
-                        onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, ex.sets, val)}
-                      />
-                    </View>
-                  </View>
-                ))}
-
-                <TouchableOpacity 
-                  style={[styles.addSlotButton, { borderColor: theme.tint + '30' }]}
-                  onPress={() => setShowExercisePicker(true)}
-                >
-                  <View style={[styles.addSlotIcon, { backgroundColor: theme.tint }]}>
-                    <IconSymbol name="plus" size={18} color="#FFFFFF" />
-                  </View>
-                  <ThemedText style={[styles.addSlotText, { color: theme.tint }]}>Add Exercise</ThemedText>
-                </TouchableOpacity>
-              </View>
-            )}
+            ))}
           </View>
-          {/* Save Button (Backup) */}
-          <View style={[styles.section, { marginTop: 20 }]}>
+        </View>
+
+        {/* Selected Day Context */}
+        <View style={[styles.dayEditor, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={styles.dayEditorHeader}>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={styles.selectedDayName}>{DAYS_SHORT[selectedDayIndex]} Mission</ThemedText>
+              <Input
+                style={[
+                  styles.dayLabelInput, 
+                  { 
+                    color: theme.text,
+                    borderBottomColor: theme.border,
+                    borderWidth: 0,
+                    backgroundColor: 'transparent',
+                  }
+                ]}
+                placeholder="e.g. Push, Pull, Legs..."
+                value={selectedDay.dayLabel}
+                onChangeText={(val) => updateDayLabel(selectedDayIndex, val)}
+              />
+            </View>
             <TouchableOpacity 
-              onPress={() => {
-                console.log('In-page Save button pressed');
-                savePlan();
-              }}
               style={[
-                styles.footerSaveButton, 
-                { backgroundColor: name.trim() ? theme.tint : theme.border + '50' }
+                styles.restToggle, 
+                { backgroundColor: selectedDay.isRestDay ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }
               ]}
-              disabled={isSaving}
+              onPress={() => toggleRestDay(selectedDayIndex)}
             >
-              {isSaving ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <ThemedText style={styles.footerSaveText}>{planId ? 'UPDATE PLAN' : 'SAVE PLAN'}</ThemedText>
-              )}
+              <ThemedText style={[
+                styles.restToggleText,
+                { color: selectedDay.isRestDay ? theme.tint : theme.text }
+              ]}>
+                {selectedDay.isRestDay ? 'REST DAY' : 'ACTIVE'}
+              </ThemedText>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-      )}
+
+          {!selectedDay.isRestDay && (
+            <View style={styles.exerciseSlotContainer}>
+              {selectedDay.exercises.map((ex, idx) => (
+                <View key={ex.exerciseId} style={[styles.exerciseSlot, { borderColor: theme.border + '50' }]}>
+                  <View style={styles.slotHeader}>
+                    <View style={styles.slotTitleGroup}>
+                      <View style={[styles.slotIndex, { backgroundColor: theme.tint + '15' }]}>
+                        <ThemedText style={[styles.slotIndexText, { color: theme.tint }]}>{idx + 1}</ThemedText>
+                      </View>
+                      <ThemedText style={styles.slotName} numberOfLines={1}>{ex.title}</ThemedText>
+                    </View>
+                    <TouchableOpacity 
+                      onPress={() => removeExerciseFromDay(selectedDayIndex, ex.exerciseId)}
+                      style={styles.slotRemove}
+                    >
+                      <IconSymbol name="trash.fill" size={18} color="#FF3B30" />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.slotControls}>
+                    <Select
+                      label="Sets"
+                      options={[1, 2, 3, 4, 5]}
+                      value={ex.sets}
+                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, val, ex.reps)}
+                    />
+                    <Select
+                      label="Reps"
+                      options={[8, 12, 16, 20, 24, 28, 32]}
+                      value={ex.reps}
+                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, ex.sets, val)}
+                    />
+                  </View>
+                </View>
+              ))}
+
+              <TouchableOpacity 
+                style={[styles.addSlotButton, { borderColor: theme.tint + '30' }]}
+                onPress={() => setShowExercisePicker(true)}
+              >
+                <View style={[styles.addSlotIcon, { backgroundColor: theme.tint }]}>
+                  <IconSymbol name="plus" size={18} color="#FFFFFF" />
+                </View>
+                <ThemedText style={[styles.addSlotText, { color: theme.tint }]}>Add Exercise</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        {/* Save Button (Backup) */}
+        <View style={[styles.section, { marginTop: 20 }]}>
+          <TouchableOpacity 
+            onPress={() => {
+              console.log('In-page Save button pressed');
+              savePlan();
+            }}
+            style={[
+              styles.footerSaveButton, 
+              { backgroundColor: name.trim() ? theme.tint : theme.border + '50' }
+            ]}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <ThemedText style={styles.footerSaveText}>{planId ? 'UPDATE PLAN' : 'SAVE PLAN'}</ThemedText>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
 
       {/* Exercise Picker Modal */}
       <Modal

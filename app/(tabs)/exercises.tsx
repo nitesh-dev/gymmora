@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { ExerciseCard } from '@/components/ui/exercise/exercise-card';
 import { FilterChip } from '@/components/ui/filter-chip';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -42,18 +43,13 @@ export default function ExercisesScreen() {
   );
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <ThemedText style={styles.greetingText}>Build your</ThemedText>
-            <ThemedText style={styles.headerTitle}>Exercise Library</ThemedText>
-          </View>
-          <View style={[styles.profileButton, { backgroundColor: theme.card }]}>
-            <IconSymbol name="person.fill" size={20} color={theme.tint} />
-          </View>
-        </View>
-        
+    <ThemedView style={styles.container}>
+      <CustomHeader 
+        title="Exercises" 
+        showBackButton={false}
+        alignTitle="left"
+        variant="rounded"
+      >
         <View style={styles.searchWrapper}>
           <SearchBar 
             value={searchQuery}
@@ -61,10 +57,7 @@ export default function ExercisesScreen() {
             placeholder="Search 1,200+ exercises..."
           />
         </View>
-      </View>
-
-      <View style={styles.filterSection}>
-        <View style={styles.filterRow}>
+        <View style={styles.filterSection}>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false} 
@@ -86,7 +79,7 @@ export default function ExercisesScreen() {
             ))}
           </ScrollView>
         </View>
-      </View>
+      </CustomHeader>
 
       {isLoading ? (
         <View style={styles.loaderContainer}>
@@ -119,47 +112,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 16,
-    gap: 16,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greetingText: {
-    fontSize: 16,
-    opacity: 0.6,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  profileButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
   searchWrapper: {
-    marginTop: 4,
+    marginTop: 8,
+    marginBottom: 12,
   },
   filterSection: {
-    paddingBottom: 16,
-  },
-  filterRow: {
-    marginBottom: 0,
+    paddingBottom: 8,
   },
   filterScroll: {
-    paddingHorizontal: 24,
+    paddingRight: 24,
     gap: 8,
   },
   loaderContainer: {
@@ -174,7 +135,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   listContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 8,
   },
   emptyContainer: {

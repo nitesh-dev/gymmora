@@ -2,10 +2,11 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MetricCard } from '@/components/ui/progress/metric-card';
 import { Section } from '@/components/ui/section';
@@ -16,6 +17,7 @@ import { useProgressViewModel } from '@/view-models/use-progress-view-model';
 const screenWidth = Dimensions.get('window').width;
 
 export default function ProgressScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
   const router = useRouter();
@@ -67,151 +69,153 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <ThemedText type="title" style={styles.header}>Progress</ThemedText>
+      <CustomHeader 
+        title="Progress" 
+        showBackButton={false} 
+        alignTitle="left"
+        variant="rounded"
+      />
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]} showsVerticalScrollIndicator={false}>
+        {/* Quick Stats */}
+        <View style={styles.statsRow}>
+          <MetricCard 
+            label="Workouts" 
+            value={summary.totalWorkouts} 
+            icon="dumbbell.fill" 
+            color="#2C9AFF"
+          />
+          <MetricCard 
+            label="Streak" 
+            value={`${summary.activeStreak}d`} 
+            icon="flame.fill" 
+            color="#FF9500"
+          />
+          <MetricCard 
+            label="Total Vol." 
+            value={`${(summary.totalVolume / 1000).toFixed(1)}k`} 
+            icon="bolt.fill" 
+            color="#34C759"
+          />
+        </View>
 
-          {/* Quick Stats */}
-          <View style={styles.statsRow}>
-            <MetricCard 
-              label="Workouts" 
-              value={summary.totalWorkouts} 
-              icon="dumbbell.fill" 
-              color="#2C9AFF"
-            />
-            <MetricCard 
-              label="Streak" 
-              value={`${summary.activeStreak}d`} 
-              icon="flame.fill" 
-              color="#FF9500"
-            />
-            <MetricCard 
-              label="Total Vol." 
-              value={`${(summary.totalVolume / 1000).toFixed(1)}k`} 
-              icon="bolt.fill" 
-              color="#34C759"
-            />
-          </View>
-
-          {/* Monthly Consistency */}
-          <Section title="Monthly Consistency" icon="flame.fill">
-            <View style={[styles.consistencyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-               <View style={styles.weekdayHeader}>
-                {calendarDays.slice(0, 7).map((date, i) => (
-                  <ThemedText key={i} style={styles.weekdayText}>
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.getDay()]}
-                  </ThemedText>
-                ))}
-              </View>
-              
-              <View style={styles.calendarGrid}>
-                {calendarDays.map((date, index) => {
-                  const dayNum = date.getDate();
-                  const completed = isDayCompleted(date);
-                  const isToday = date.toDateString() === new Date().toDateString();
-                  
-                  return (
-                    <View key={index} style={styles.calendarDay}>
-                    <View style={[
-                      styles.dayDot, 
-                      { backgroundColor: completed ? theme.tint : (colorScheme === 'dark' ? '#333' : '#F5F5F5') },
-                      isToday && { borderWidth: 2, borderColor: theme.tint, borderStyle: 'solid' }
+        {/* Monthly Consistency */}
+        <Section title="Monthly Consistency" icon="flame.fill">
+          <View style={[styles.consistencyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+             <View style={styles.weekdayHeader}>
+              {calendarDays.slice(0, 7).map((date, i) => (
+                <ThemedText key={i} style={styles.weekdayText}>
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.getDay()]}
+                </ThemedText>
+              ))}
+            </View>
+            
+            <View style={styles.calendarGrid}>
+              {calendarDays.map((date, index) => {
+                const dayNum = date.getDate();
+                const completed = isDayCompleted(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                
+                return (
+                  <View key={index} style={styles.calendarDay}>
+                  <View style={[
+                    styles.dayDot, 
+                    { backgroundColor: completed ? theme.tint : (colorScheme === 'dark' ? '#333' : '#F5F5F5') },
+                    isToday && { borderWidth: 2, borderColor: theme.tint, borderStyle: 'solid' }
+                  ]}>
+                    <ThemedText style={[
+                      styles.dayNumberInside, 
+                      { color: completed ? '#FFF' : (isToday ? theme.tint : theme.text + '60') }
                     ]}>
-                      <ThemedText style={[
-                        styles.dayNumberInside, 
-                        { color: completed ? '#FFF' : (isToday ? theme.tint : theme.text + '60') }
-                      ]}>
-                        {dayNum}
-                      </ThemedText>
-                    </View>
-                    </View>
-                  );
-                })}
-              </View>
+                      {dayNum}
+                    </ThemedText>
+                  </View>
+                  </View>
+                );
+              })}
             </View>
-          </Section>
+          </View>
+        </Section>
 
-          {/* Volume Chart */}
-          <Section title="Volume Trend" icon="chart.bar.fill">
-            <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              {volumeHistory.length > 0 ? (
-                <LineChart
-                  data={volumeData}
-                  width={screenWidth - 64} // Adjusted for card padding
-                  height={200}
-                  chartConfig={{
-                    ...chartConfig,
-                    backgroundGradientFrom: theme.card,
-                    backgroundGradientTo: theme.card,
-                  }}
-                  bezier
-                  style={styles.chart}
-                  withInnerLines={false}
-                  withOuterLines={false}
-                />
-              ) : (
-                <ThemedText style={styles.emptyText}>No volume data yet</ThemedText>
-              )}
-            </View>
-          </Section>
+        {/* Volume Chart */}
+        <Section title="Volume Trend" icon="chart.bar.fill">
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {volumeHistory.length > 0 ? (
+              <LineChart
+                data={volumeData}
+                width={screenWidth - 64} // Adjusted for card padding
+                height={200}
+                chartConfig={{
+                  ...chartConfig,
+                  backgroundGradientFrom: theme.card,
+                  backgroundGradientTo: theme.card,
+                }}
+                bezier
+                style={styles.chart}
+                withInnerLines={false}
+                withOuterLines={false}
+              />
+            ) : (
+              <ThemedText style={styles.emptyText}>No volume data yet</ThemedText>
+            )}
+          </View>
+        </Section>
 
-          {/* Muscle Distribution */}
-          <Section title="Muscle Distribution" icon="chart.bar.fill">
-            <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-               {muscleStats.length > 0 ? (
-                <BarChart
-                  data={muscleData}
-                  width={screenWidth - 64} // Adjusted for card padding
-                  height={200}
-                  yAxisLabel=""
-                  yAxisSuffix=""
-                  chartConfig={{
-                    ...chartConfig,
-                    backgroundGradientFrom: theme.card,
-                    backgroundGradientTo: theme.card,
-                  }}
-                  verticalLabelRotation={20}
-                  style={styles.chart}
-                  fromZero
-                  showValuesOnTopOfBars
-                />
-              ) : (
-                <ThemedText style={styles.emptyText}>No workout data yet</ThemedText>
-              )}
-            </View>
-          </Section>
+        {/* Muscle Distribution */}
+        <Section title="Muscle Distribution" icon="chart.bar.fill">
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+             {muscleStats.length > 0 ? (
+              <BarChart
+                data={muscleData}
+                width={screenWidth - 64} // Adjusted for card padding
+                height={200}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  ...chartConfig,
+                  backgroundGradientFrom: theme.card,
+                  backgroundGradientTo: theme.card,
+                }}
+                verticalLabelRotation={20}
+                style={styles.chart}
+                fromZero
+                showValuesOnTopOfBars
+              />
+            ) : (
+              <ThemedText style={styles.emptyText}>No workout data yet</ThemedText>
+            )}
+          </View>
+        </Section>
 
-          {/* Personal Records */}
-          <Section title="Personal Records" icon="trophy.fill">
-            <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              {prs.length > 0 ? (
-                prs.map((pr, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={[styles.prItem, index === prs.length - 1 && { borderBottomWidth: 0 }]}
-                    onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: pr.exerciseId } })}
-                  >
-                    <View>
-                      <ThemedText type="defaultSemiBold">{pr.exercise}</ThemedText>
-                      <ThemedText style={styles.prDate}>
-                        {new Date(pr.date).toLocaleDateString()}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.prAction}>
-                      <ThemedText type="defaultSemiBold" style={styles.prWeight}>
-                        {pr.maxWeight} kg
-                      </ThemedText>
-                      <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3, marginLeft: 8 }} />
-                    </View>
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <ThemedText style={styles.emptyText}>No PRs recorded yet</ThemedText>
-              )}
-            </View>
-          </Section>
-        </ScrollView>
-      </SafeAreaView>
+        {/* Personal Records */}
+        <Section title="Personal Records" icon="trophy.fill">
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {prs.length > 0 ? (
+              prs.map((pr, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={[styles.prItem, index === prs.length - 1 && { borderBottomWidth: 0 }]}
+                  onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: pr.exerciseId } })}
+                >
+                  <View>
+                    <ThemedText type="defaultSemiBold">{pr.exercise}</ThemedText>
+                    <ThemedText style={styles.prDate}>
+                      {new Date(pr.date).toLocaleDateString()}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.prAction}>
+                    <ThemedText type="defaultSemiBold" style={styles.prWeight}>
+                      {pr.maxWeight} kg
+                    </ThemedText>
+                    <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3, marginLeft: 8 }} />
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <ThemedText style={styles.emptyText}>No PRs recorded yet</ThemedText>
+            )}
+          </View>
+        </Section>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -220,12 +224,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-  },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingTop: 8,
   },
   header: {
     marginBottom: 24,
