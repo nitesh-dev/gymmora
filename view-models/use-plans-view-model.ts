@@ -34,10 +34,31 @@ export function usePlansViewModel() {
     }
   };
 
+  const importPlan = async (jsonContent: string) => {
+    try {
+      await planService.validateAndImportPlan(jsonContent);
+      await loadPlans();
+    } catch (error) {
+      console.error('Failed to import plan:', error);
+      throw error;
+    }
+  };
+
+  const exportPlan = async (id: number) => {
+    return await planService.exportPlan(id);
+  };
+
+  const getTemplate = () => {
+    return planService.getPlanTemplate();
+  };
+
   return {
     plans,
     isLoading,
     refreshPlans: loadPlans,
     deletePlan,
+    importPlan,
+    exportPlan,
+    getTemplate,
   };
 }

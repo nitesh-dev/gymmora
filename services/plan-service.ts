@@ -159,4 +159,96 @@ export const planService = {
       .set({ status: 'active' })
       .where(eq(workoutPlans.id, id));
   },
+
+  async exportPlan(id: number) {
+    const plan = await this.getPlanById(id);
+    if (!plan) throw new Error('Plan not found');
+
+    const exportData = {
+      name: plan.name,
+      type: 'CUSTOM', // Imported plans are always custom
+      days: plan.days.map((day: any) => ({
+        dayOfWeek: day.dayOfWeek,
+        dayLabel: day.dayLabel,
+        isRestDay: day.isRestDay,
+        exercises: day.exercises.map((ex: any) => ({
+          exerciseId: ex.exerciseId,
+          sets: ex.sets,
+          reps: ex.reps,
+          order: ex.exerciseOrder,
+        })),
+      })),
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  },
+
+  async validateAndImportPlan(jsonContent: string) {
+    try {
+      const data = JSON.parse(jsonContent);
+      
+      // Basic validation
+      if (!data.name || !Array.isArray(data.days)) {
+        throw new Error('Invalid plan format: Missing name or days');
+      }
+
+      // Ensure at least one exercise exists in the entire plan if not all rest days
+      const hasExercises = data.days.some((d: any) => d.exercises && d.exercises.length > 0);
+      const allRestDays = data.days.every((d: any) => d.isRestDay);
+      
+      if (!allRestDays && !hasExercises) {
+        throw new Error('Invalid plan format: No exercises found in workout days');
+      }
+
+      // Convert to CreatePlanData format (ensuring type is CUSTOM)
+      const planToCreate: CreatePlanData = {
+        name: `${data.name} (Imported)`,
+        type: 'CUSTOM',
+        days: data.days.map((day: any) => ({
+          dayOfWeek: day.dayOfWeek,
+          dayLabel: day.dayLabel || '',
+          isRestDay: !!day.isRestDay,
+          exercises: (day.exercises || []).map((ex: any) => ({
+            exerciseId: Number(ex.exerciseId),
+            sets: Number(ex.sets),
+            reps: Number(ex.reps),
+            order: Number(ex.order),
+          })),
+        })),
+      };
+
+      return await this.createPlan(planToCreate);
+    } catch (error) {
+      console.error('Import error:', error);
+      throw error instanceof Error ? error : new Error('Failed to parse plan file');
+    }
+  },
+
+  getPlanTemplate() {
+    const template = {
+      name: "Example Plan Name",
+      days: [
+        {
+          dayOfWeek: 1,
+          dayLabel: "Push Day",
+          isRestDay: false,
+          exercises: [
+            {
+              exerciseId: 1, // Look up real IDs in the app
+              sets: 3,
+              reps: 12,
+              order: 1
+            }
+          ]
+        },
+        {
+          dayOfWeek: 2,
+          dayLabel: "Rest Day",
+          isRestDay: true,
+          exercises: []
+        }
+      ]
+    };
+    return JSON.stringify(template, null, 2);
+  }
 };

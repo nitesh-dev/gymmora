@@ -1,5 +1,8 @@
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -15,7 +18,72 @@ export default function PlansScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
-  const { plans, isLoading, refreshPlans } = usePlansViewModel();
+  const { plans, isLoading, refreshPlans, importPlan, exportPlan, getTemplate } = usePlansViewModel();
+
+  const handleImport = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const fileUri = result.assets[0].uri;
+      const content = await FileSystem.readAsStringAsync(fileUri);
+      
+      await importPlan(content);
+      Alert.alert('Success', 'Plan imported successfully');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to import plan');
+    }
+  };
+
+  const handleExport = async (id: number, name: string) => {
+    try {
+      const jsonContent = await exportPlan(id);
+      const fileName = `${name.replace(/\s+/g, '_').toLowerCase()}_plan.json`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, jsonContent);
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/json',
+        dialogTitle: `Export ${name}`,
+        UTI: 'public.json',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export plan');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const template = getTemplate();
+      const fileName = 'gymmora_plan_template.json';
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, template);
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Download Plan Template',
+        UTI: 'public.json',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to generate template');
+    }
+  };
+
+  const showManagementMenu = () => {
+    Alert.alert(
+      'Manage Plans',
+      'Select an action',
+      [
+        { text: 'Import Plan', onPress: handleImport },
+        { text: 'Download Template', onPress: handleDownloadTemplate },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
 
   const renderPlanItem = ({ item }: { item: any }) => {
     const workoutDays = item.days?.filter((d: any) => !d.isRestDay).length || 0;
@@ -62,7 +130,19 @@ export default function PlansScreen() {
             </View>
           </View>
         </View>
-        <IconSymbol name="chevron.right" size={16} color={theme.icon} style={{ opacity: 0.3 }} />
+        
+        <View style={styles.cardActions}>
+          <TouchableOpacity 
+            onPress={(e) => {
+              e.stopPropagation();
+              handleExport(item.id, item.name);
+            }}
+            style={styles.cardIconButton}
+          >
+            <IconSymbol name="paperplane.fill" size={18} color={theme.tint} />
+          </TouchableOpacity>
+          <IconSymbol name="chevron.right" size={16} color={theme.icon} style={{ opacity: 0.3 }} />
+        </View>
       </TouchableOpacity>
     );
   };
@@ -75,12 +155,20 @@ export default function PlansScreen() {
         alignTitle="left"
         variant="rounded"
         rightAction={
-          <TouchableOpacity 
-            style={[styles.createButton, { backgroundColor: theme.tint }]}
-            onPress={() => router.push('/plans/create' as any)}
-          >
-            <IconSymbol name="plus" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={[styles.headerIconButton, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={showManagementMenu}
+            >
+              <IconSymbol name="ellipsis" size={24} color={theme.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.createButton, { backgroundColor: theme.tint }]}
+              onPress={() => router.push('/plans/create' as any)}
+            >
+              <IconSymbol name="plus" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -121,6 +209,19 @@ export default function PlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  headerIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
   },
   createButton: {
     width: 44,
@@ -227,5 +328,15 @@ const styles = StyleSheet.create({
   emptyActionText: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cardIconButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
 });
