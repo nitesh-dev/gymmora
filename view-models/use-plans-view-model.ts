@@ -6,8 +6,8 @@ export function usePlansViewModel() {
   const [plans, setPlans] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadPlans = useCallback(async () => {
-    setIsLoading(true);
+  const loadPlans = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const data = await planService.getPlans();
       console.log('Fetched plans count:', data.length);
@@ -21,8 +21,8 @@ export function usePlansViewModel() {
 
   useFocusEffect(
     useCallback(() => {
-      loadPlans();
-    }, [loadPlans])
+      loadPlans(plans.length > 0);
+    }, [loadPlans, plans.length])
   );
 
   const deletePlan = async (id: number) => {

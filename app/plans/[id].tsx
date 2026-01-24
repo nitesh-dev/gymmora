@@ -20,44 +20,28 @@ export default function PlanDetailScreen() {
   const theme = Colors[colorScheme];
   const { plan, isLoading } = usePlanDetailViewModel(Number(id));
 
-  if (isLoading) {
-    return (
-      <ThemedView style={styles.center}>
-        <ActivityIndicator size="large" color={theme.tint} />
-      </ThemedView>
-    );
-  }
-
-  if (!plan) {
-    return (
-      <ThemedView style={styles.center}>
-        <ThemedText>Plan not found.</ThemedText>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ThemedText style={{ color: theme.tint }}>Go Back</ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen 
         options={{ 
           headerShown: true,
-          headerTitle: plan.name,
-          headerTransparent: true,
+          headerTitle: plan?.name || '',
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()} 
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
             >
               <IconSymbol name="chevron.left" size={24} color={theme.text} />
             </TouchableOpacity>
           ),
-          headerRight: () => plan.type === 'CUSTOM' ? (
-            <View style={{ flexDirection: 'row' }}>
+          headerRight: () => plan && plan.type === 'CUSTOM' ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 8 }}>
               <TouchableOpacity 
                 onPress={() => {
+                  console.log('Delete Plan Pressed');
                   Alert.alert(
                     'Delete Plan',
                     'Are you sure you want to delete this plan?',
@@ -74,6 +58,7 @@ export default function PlanDetailScreen() {
                     ]
                   );
                 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,59,48,0.1)', marginRight: 8 }]}
               >
                 <IconSymbol name="trash.fill" size={20} color="#FF3B30" />
@@ -83,7 +68,8 @@ export default function PlanDetailScreen() {
                   pathname: '/plans/create',
                   params: { id: plan.id }
                 })}
-                style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)', marginRight: 8 }]}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
               >
                 <IconSymbol name="pencil.fill" size={20} color={theme.text} />
               </TouchableOpacity>
@@ -92,81 +78,96 @@ export default function PlanDetailScreen() {
         }} 
       />
 
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 100 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerInfo}>
-          <View style={[styles.typeBadge, { backgroundColor: plan.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
-            <ThemedText style={[styles.typeText, { color: plan.type === 'SYSTEM' ? theme.tint : theme.text }]}>
-              {plan.type} PLAN
+      {isLoading ? (
+        <ThemedView style={styles.center}>
+          <ActivityIndicator size="large" color={theme.tint} />
+        </ThemedView>
+      ) : !plan ? (
+        <ThemedView style={styles.center}>
+          <ThemedText>Plan not found.</ThemedText>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ThemedText style={{ color: theme.tint }}>Go Back</ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      ) : (
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 100 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerInfo}>
+            <View style={[styles.typeBadge, { backgroundColor: plan.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
+              <ThemedText style={[styles.typeText, { color: plan.type === 'SYSTEM' ? theme.tint : theme.text }]}>
+                {plan.type} PLAN
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.createdAt}>
+              Created on {new Date(plan.createdAt).toLocaleDateString()}
             </ThemedText>
           </View>
-          <ThemedText style={styles.createdAt}>
-            Created on {new Date(plan.createdAt).toLocaleDateString()}
-          </ThemedText>
-        </View>
 
-        <View style={styles.daysList}>
-          {plan.days?.sort((a: any, b: any) => a.dayOfWeek - b.dayOfWeek).map((day: any) => (
-            <View 
-              key={day.id} 
-              style={[
-                styles.dayCard, 
-                { backgroundColor: theme.card, borderColor: theme.border },
-                day.isRestDay && { opacity: 0.6 }
-              ]}
-            >
-              <View style={styles.dayHeader}>
-                <View style={styles.dayLabelContainer}>
-                  <ThemedText style={styles.dayName}>{DAYS_OF_WEEK[day.dayOfWeek]}</ThemedText>
-                  {day.dayLabel && (
-                    <ThemedText style={styles.dayTitle}>{day.dayLabel}</ThemedText>
+          <View style={styles.daysList}>
+            {plan.days?.sort((a: any, b: any) => a.dayOfWeek - b.dayOfWeek).map((day: any) => (
+              <View 
+                key={day.id} 
+                style={[
+                  styles.dayCard, 
+                  { backgroundColor: theme.card, borderColor: theme.border },
+                  day.isRestDay && { opacity: 0.6 }
+                ]}
+              >
+                <View style={styles.dayHeader}>
+                  <View style={styles.dayLabelContainer}>
+                    <ThemedText style={styles.dayName}>{DAYS_OF_WEEK[day.dayOfWeek]}</ThemedText>
+                    {day.dayLabel && (
+                      <ThemedText style={styles.dayTitle}>{day.dayLabel}</ThemedText>
+                    )}
+                  </View>
+                  {day.isRestDay ? (
+                    <View style={[styles.restBadge, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+                      <ThemedText style={styles.restText}>REST DAY</ThemedText>
+                    </View>
+                  ) : (
+                    <ThemedText style={styles.exerciseCount}>
+                      {day.exercises?.length || 0} Exercises
+                    </ThemedText>
                   )}
                 </View>
-                {day.isRestDay ? (
-                  <View style={[styles.restBadge, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
-                    <ThemedText style={styles.restText}>REST DAY</ThemedText>
+
+                {!day.isRestDay && day.exercises?.length > 0 && (
+                  <View style={styles.exercisePreview}>
+                    {day.exercises.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any, idx: number) => (
+                      <View key={ex.id} style={styles.exerciseItem}>
+                        <ThemedText style={styles.exerciseIndex}>{idx + 1}</ThemedText>
+                        <View style={styles.exerciseMeta}>
+                          <ThemedText style={styles.exerciseName} numberOfLines={1}>
+                            {ex.exercise?.title}
+                          </ThemedText>
+                          <ThemedText style={styles.exerciseSets}>
+                            {ex.sets} sets × {ex.reps} reps
+                          </ThemedText>
+                        </View>
+                      </View>
+                    ))}
                   </View>
-                ) : (
-                  <ThemedText style={styles.exerciseCount}>
-                    {day.exercises?.length || 0} Exercises
-                  </ThemedText>
                 )}
               </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
 
-              {!day.isRestDay && day.exercises?.length > 0 && (
-                <View style={styles.exercisePreview}>
-                  {day.exercises.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any, idx: number) => (
-                    <View key={ex.id} style={styles.exerciseItem}>
-                      <ThemedText style={styles.exerciseIndex}>{idx + 1}</ThemedText>
-                      <View style={styles.exerciseMeta}>
-                        <ThemedText style={styles.exerciseName} numberOfLines={1}>
-                          {ex.exercise?.title}
-                        </ThemedText>
-                        <ThemedText style={styles.exerciseSets}>
-                          {ex.sets} sets × {ex.reps} reps
-                        </ThemedText>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <TouchableOpacity 
-        style={[styles.startButton, { backgroundColor: theme.tint, bottom: insets.bottom + 20 }]}
-        onPress={() => {
-          // Logic to start the workout would go here
-          console.log('Start Workout');
-        }}
-      >
-        <IconSymbol name="bolt.fill" size={20} color="#FFFFFF" />
-        <ThemedText style={styles.startButtonText}>Start Today's Session</ThemedText>
-      </TouchableOpacity>
+      {plan && (
+        <TouchableOpacity 
+          style={[styles.startButton, { backgroundColor: theme.tint, bottom: insets.bottom + 20 }]}
+          onPress={() => {
+            // Logic to start the workout would go here
+            console.log('Start Workout');
+          }}
+        >
+          <IconSymbol name="bolt.fill" size={20} color="#FFFFFF" />
+          <ThemedText style={styles.startButtonText}>Start Today's Session</ThemedText>
+        </TouchableOpacity>
+      )}
     </ThemedView>
   );
 }

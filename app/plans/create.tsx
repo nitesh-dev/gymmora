@@ -67,24 +67,18 @@ export default function CreatePlanScreen() {
     addExerciseToDay(selectedDayIndex, exercise);
   };
 
-  if (isLoading) {
-    return (
-      <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.tint} />
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen 
         options={{ 
           headerShown: true,
-          headerTitle: planId ? 'Edit Plan' : 'Create Plan',
-          headerTransparent: true,
+          headerTitle: planId ? (isLoading ? 'Loading Plan...' : 'Edit Plan') : 'Create Plan',
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()} 
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={[styles.headerCircleButton, { backgroundColor: 'rgba(255,255,255,0.05)' }]}
             >
               <IconSymbol name="chevron.left" size={24} color={theme.text} />
@@ -96,35 +90,51 @@ export default function CreatePlanScreen() {
                 console.log('Save button pressed');
                 savePlan();
               }}
+              disabled={isSaving}
               hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
               style={[
                 styles.headerSaveButton, 
                 { 
-                  backgroundColor: name.trim() ? theme.tint : 'rgba(255,255,255,0.15)',
-                  opacity: isSaving ? 0.7 : 1
-                }
+                  backgroundColor: name.trim() ? theme.tint : 'rgba(255,255,255,0.05)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                },
+                isSaving && { opacity: 0.7 }
               ]}
             >
               {isSaving ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <ThemedText style={[styles.saveText, { color: name.trim() ? '#FFFFFF' : theme.icon }]}>
-                  {planId ? 'Update' : 'Save'}
-                </ThemedText>
+                <>
+                  <IconSymbol 
+                    name="paperplane.fill" 
+                    size={16} 
+                    color={name.trim() ? "#FFFFFF" : theme.icon} 
+                  />
+                  <ThemedText style={[styles.saveText, { color: name.trim() ? '#FFFFFF' : theme.icon }]}>
+                    {planId ? 'Update' : 'Save'}
+                  </ThemedText>
+                </>
               )}
             </TouchableOpacity>
           ),
         }} 
       />
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView 
-          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 40 }]}
-          showsVerticalScrollIndicator={false}
+      {isLoading ? (
+        <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={theme.tint} />
+        </ThemedView>
+      ) : (
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
         >
+          <ScrollView 
+            contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 40 }]}
+            showsVerticalScrollIndicator={false}
+          >
           {/* Plan Name */}
           <View style={styles.section}>
             <Input
@@ -271,6 +281,7 @@ export default function CreatePlanScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      )}
 
       {/* Exercise Picker Modal */}
       <Modal
