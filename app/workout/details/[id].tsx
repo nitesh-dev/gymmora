@@ -88,6 +88,11 @@ export default function WorkoutDetailsScreen() {
               <View style={styles.exerciseInfo}>
                 <ThemedText style={styles.exerciseTitle}>{ex.exercise.title}</ThemedText>
                 <ThemedText style={styles.exerciseMeta}>{ex.sets} sets • {ex.reps} reps</ThemedText>
+                {ex.exercise.overview && (
+                  <ThemedText style={styles.exerciseOverview} numberOfLines={1}>
+                    {ex.exercise.overview}
+                  </ThemedText>
+                )}
               </View>
               <IconSymbol name="chevron.right" size={16} color={theme.icon} style={{ opacity: 0.3 }} />
             </TouchableOpacity>
@@ -202,6 +207,11 @@ const styles = StyleSheet.create({
   exerciseMeta: {
     fontSize: 13,
     opacity: 0.5,
+    marginTop: 2,
+  },
+  exerciseOverview: {
+    fontSize: 12,
+    opacity: 0.4,
     marginTop: 2,
   },
   footer: {

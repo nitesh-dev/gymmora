@@ -20,6 +20,48 @@ export const workoutService = {
     });
   },
 
+  async getAllLogs() {
+    const db = await getDb();
+    if (!db) return [];
+
+    return await db.query.workoutLogs.findMany({
+      orderBy: [desc(workoutLogs.date)],
+      with: {
+        planDay: {
+          with: {
+            plan: true,
+          },
+        },
+        sets: {
+          with: {
+            exercise: true,
+          }
+        }
+      },
+    });
+  },
+
+  async getWorkoutLogById(id: number) {
+    const db = await getDb();
+    if (!db) return null;
+
+    return await db.query.workoutLogs.findFirst({
+      where: eq(workoutLogs.id, id),
+      with: {
+        planDay: {
+          with: {
+            plan: true,
+          },
+        },
+        sets: {
+          with: {
+            exercise: true,
+          }
+        }
+      },
+    });
+  },
+
   async getWeeklyActivity(startDate: Date, endDate: Date) {
     const db = await getDb();
     if (!db) return [];
