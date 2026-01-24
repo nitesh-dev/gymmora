@@ -1,4 +1,4 @@
-import { CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Code2, Dumbbell, History, Home, Pencil, Play, Plus, Search, Send, Trash2, User, X, Zap } from 'lucide-react-native';
+import { BarChart2, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Code2, Dumbbell, Flame, History, Home, Pencil, Play, Plus, Search, Send, Trash2, Trophy, User, X, Zap } from 'lucide-react-native';
 import React from 'react';
 import { OpaqueColorValue, StyleProp, ViewStyle } from 'react-native';
 
@@ -25,6 +25,9 @@ const MAPPING = {
   'multiply': X,
   'pencil.fill': Pencil,
   'play.fill': Play,
+  'chart.bar.fill': BarChart2,
+  'trophy.fill': Trophy,
+  'flame.fill': Flame,
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

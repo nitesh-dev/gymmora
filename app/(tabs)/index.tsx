@@ -14,14 +14,22 @@ export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
-  const { todayWorkout, weeklyActivity, stats, isLoading, refresh } = useHomeViewModel();
+  const { todayWorkout, weeklyActivity, monthlyActivity, stats, isLoading, refresh } = useHomeViewModel();
 
   const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const todayIndex = new Date().getDay();
 
-  const isDayCompleted = (dayIndex: number) => {
-    return weeklyActivity.some(log => new Date(log.date).getDay() === dayIndex);
+  const isDayCompleted = (date: Date) => {
+    return monthlyActivity.some(log => new Date(log.date).toDateString() === date.toDateString());
   };
+
+  // Generate last 7 days with today as the second last item
+  const calendarDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    // Today will be at index 5 (second last)
+    d.setDate(d.getDate() - 5 + i);
+    return d;
+  });
 
   return (
     <ThemedView style={styles.container}>
@@ -81,24 +89,44 @@ export default function HomeScreen() {
           )}
         </Section>
 
-        {/* Weekly Activity */}
-        <Section title="Weekly Activity">
+        {/* Monthly Streak Activity */}
+        <Section title="Consistency & Streak">
           <View style={[styles.activityCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={styles.daysRow}>
-              {daysOfWeek.map((day, index) => {
-                const isToday = index === todayIndex;
-                const completed = isDayCompleted(index);
+            <View style={styles.streakHeader}>
+              <View style={styles.streakInfo}>
+                <IconSymbol name="flame.fill" size={20} color="#FF9500" />
+                <ThemedText style={styles.streakCount}>{stats.streak} Day Streak</ThemedText>
+              </View>
+              <ThemedText style={styles.streakSub}>This Week</ThemedText>
+            </View>
+            
+            <View style={styles.weekdayHeader}>
+              {calendarDays.map((date, i) => (
+                <ThemedText key={i} style={styles.weekdayText}>
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.getDay()]}
+                </ThemedText>
+              ))}
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {calendarDays.map((date, index) => {
+                const dayNum = date.getDate();
+                const completed = isDayCompleted(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                
                 return (
-                  <View key={index} style={styles.dayColumn}>
-                    <ThemedText style={[styles.dayLetter, isToday && { color: theme.tint, fontWeight: 'bold' }]}>
-                      {day}
-                    </ThemedText>
+                  <View key={index} style={styles.calendarDay}>
                     <View style={[
                       styles.dayDot, 
-                      { backgroundColor: completed ? theme.tint : (colorScheme === 'dark' ? '#333' : '#EEE') },
-                      isToday && !completed && { borderWidth: 2, borderColor: theme.tint }
+                      { backgroundColor: completed ? theme.tint : (colorScheme === 'dark' ? '#333' : '#F5F5F5') },
+                      isToday && { borderWidth: 2, borderColor: theme.tint, borderStyle: 'solid' }
                     ]}>
-                      {completed && <IconSymbol name="checkmark" size={12} color="#FFF" />}
+                      <ThemedText style={[
+                        styles.dayNumberInside, 
+                        { color: completed ? '#FFF' : (isToday ? theme.tint : theme.text + '60') }
+                      ]}>
+                        {dayNum}
+                      </ThemedText>
                     </View>
                   </View>
                 );
@@ -216,25 +244,60 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
   },
-  daysRow: {
+  streakHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  dayColumn: {
+  streakInfo: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  dayLetter: {
+  streakCount: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  streakSub: {
     fontSize: 12,
     opacity: 0.5,
   },
+  weekdayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  weekdayText: {
+    width: (width - 40 - 40 - 2 - 48) / 7, // Adjusting for 1px borders on card
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '700',
+    opacity: 0.4,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 8,
+    rowGap: 8,
+  },
+  calendarDay: {
+    width: (width - 40 - 40 - 2 - 48) / 7, // Adjusting for 1px borders on card
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dayDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  dayNumberInside: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
