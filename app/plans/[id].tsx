@@ -107,8 +107,14 @@ export default function PlanDetailScreen() {
 
           <View style={styles.daysList}>
             {plan.days?.sort((a: any, b: any) => a.dayOfWeek - b.dayOfWeek).map((day: any) => (
-              <View 
+              <TouchableOpacity 
                 key={day.id} 
+                activeOpacity={day.isRestDay ? 1 : 0.7}
+                onPress={() => {
+                  if (!day.isRestDay) {
+                    router.push(`/workout/details/${day.id}` as any);
+                  }
+                }}
                 style={[
                   styles.dayCard, 
                   { backgroundColor: theme.card, borderColor: theme.border },
@@ -127,9 +133,12 @@ export default function PlanDetailScreen() {
                       <ThemedText style={styles.restText}>REST DAY</ThemedText>
                     </View>
                   ) : (
-                    <ThemedText style={styles.exerciseCount}>
-                      {day.exercises?.length || 0} Exercises
-                    </ThemedText>
+                    <View style={styles.exerciseCountContainer}>
+                      <ThemedText style={styles.exerciseCount}>
+                        {day.exercises?.length || 0} Exercises
+                      </ThemedText>
+                      <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3 }} />
+                    </View>
                   )}
                 </View>
 
@@ -150,7 +159,7 @@ export default function PlanDetailScreen() {
                     ))}
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </ScrollView>
@@ -160,8 +169,13 @@ export default function PlanDetailScreen() {
         <TouchableOpacity 
           style={[styles.startButton, { backgroundColor: theme.tint, bottom: insets.bottom + 20 }]}
           onPress={() => {
-            // Logic to start the workout would go here
-            console.log('Start Workout');
+            const today = new Date().getDay();
+            const todayDay = plan.days?.find((d: any) => d.dayOfWeek === today);
+            if (todayDay && !todayDay.isRestDay) {
+              router.push(`/workout/details/${todayDay.id}` as any);
+            } else {
+              Alert.alert('Rest Day', 'Today is scheduled as a rest day for this plan.');
+            }
           }}
         >
           <IconSymbol name="bolt.fill" size={20} color="#FFFFFF" />
@@ -241,6 +255,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginTop: 2,
+  },
+  exerciseCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   exerciseCount: {
     fontSize: 12,
