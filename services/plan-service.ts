@@ -143,7 +143,20 @@ export const planService = {
 
   async deletePlan(id: number) {
     const db = await getDb();
-    // Cascade delete is handled by the database schema references
-    return await db.delete(workoutPlans).where(eq(workoutPlans.id, id));
-  }
+    if (!db) return;
+    await db.delete(workoutPlans).where(eq(workoutPlans.id, id));
+  },
+
+  async activatePlan(id: number) {
+    const db = await getDb();
+    if (!db) return;
+
+    // Deactivate all plans first
+    await db.update(workoutPlans).set({ status: 'inactive' });
+    
+    // Activate the selected plan
+    await db.update(workoutPlans)
+      .set({ status: 'active' })
+      .where(eq(workoutPlans.id, id));
+  },
 };

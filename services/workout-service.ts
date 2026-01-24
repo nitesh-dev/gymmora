@@ -81,11 +81,9 @@ export const workoutService = {
 
     const today = new Date().getDay(); // 0 is Sunday, 1 is Monday...
 
-    // For now, let's assume the "active" plan is the most recently created one
-    // or maybe we should have an 'active' flag in the future.
-    // Fetch the latest global plan to find what's scheduled for today
+    // Fetch the active plan
     const activePlan = await db.query.workoutPlans.findFirst({
-      orderBy: [desc(workoutPlans.createdAt)],
+      where: eq(workoutPlans.status, 'active'),
     });
 
     if (!activePlan) return null;

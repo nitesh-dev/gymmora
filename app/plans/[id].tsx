@@ -18,7 +18,13 @@ export default function PlanDetailScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
-  const { plan, isLoading } = usePlanDetailViewModel(Number(id));
+  const { plan, isLoading, refresh } = usePlanDetailViewModel(Number(id));
+
+  const handleActivatePlan = async () => {
+    await planService.activatePlan(Number(id));
+    Alert.alert('Plan Activated', `${plan?.name} is now your active workout plan.`);
+    refresh();
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -167,19 +173,27 @@ export default function PlanDetailScreen() {
 
       {plan && (
         <TouchableOpacity 
-          style={[styles.startButton, { backgroundColor: theme.tint, bottom: insets.bottom + 20 }]}
-          onPress={() => {
-            const today = new Date().getDay();
-            const todayDay = plan.days?.find((d: any) => d.dayOfWeek === today);
-            if (todayDay && !todayDay.isRestDay) {
-              router.push(`/workout/details/${todayDay.id}` as any);
-            } else {
-              Alert.alert('Rest Day', 'Today is scheduled as a rest day for this plan.');
+          style={[
+            styles.startButton, 
+            { 
+              backgroundColor: plan.status === 'active' ? theme.border : theme.tint, 
+              bottom: insets.bottom + 20 
             }
-          }}
+          ]}
+          onPress={plan.status === 'active' ? undefined : handleActivatePlan}
+          activeOpacity={plan.status === 'active' ? 1 : 0.7}
         >
-          <IconSymbol name="bolt.fill" size={20} color="#FFFFFF" />
-          <ThemedText style={styles.startButtonText}>Start Today's Session</ThemedText>
+          <IconSymbol 
+            name={plan.status === 'active' ? "checkmark.circle.fill" : "bolt.fill"} 
+            size={20} 
+            color={plan.status === 'active' ? theme.tint : "#FFFFFF"} 
+          />
+          <ThemedText style={[
+            styles.startButtonText, 
+            plan.status === 'active' && { color: theme.text }
+          ]}>
+            {plan.status === 'active' ? 'Current Active Plan' : 'Set as Active Plan'}
+          </ThemedText>
         </TouchableOpacity>
       )}
     </ThemedView>

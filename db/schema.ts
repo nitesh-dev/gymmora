@@ -79,6 +79,7 @@ export const workoutPlans = sqliteTable('workout_plans', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   type: text('type', { enum: ['SYSTEM', 'CUSTOM'] }).notNull(),
+  status: text('status', { enum: ['active', 'inactive'] }).notNull().default('inactive'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
