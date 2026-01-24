@@ -21,17 +21,30 @@ export default function PlansScreen() {
     
     return (
       <TouchableOpacity 
-        style={[styles.planCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+        style={[
+          styles.planCard, 
+          { backgroundColor: theme.card, borderColor: theme.border },
+          item.status === 'active' && { borderColor: theme.tint, borderWidth: 1.5 }
+        ]}
         onPress={() => router.push(`/plans/${item.id}`)}
         activeOpacity={0.7}
       >
         <View style={styles.planInfo}>
           <View style={styles.planHeader}>
             <ThemedText style={styles.planName}>{item.name}</ThemedText>
-            <View style={[styles.badge, { backgroundColor: item.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
-              <ThemedText style={[styles.badgeText, { color: item.type === 'SYSTEM' ? theme.tint : theme.text }]}>
-                {item.type}
-              </ThemedText>
+            <View style={styles.badgeContainer}>
+              {item.status === 'active' && (
+                <View style={[styles.badge, { backgroundColor: theme.tint + '15' }]}>
+                  <ThemedText style={[styles.badgeText, { color: theme.tint }]}>
+                    ACTIVE
+                  </ThemedText>
+                </View>
+              )}
+              <View style={[styles.badge, { backgroundColor: item.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
+                <ThemedText style={[styles.badgeText, { color: item.type === 'SYSTEM' ? theme.tint : theme.text }]}>
+                  {item.type}
+                </ThemedText>
+              </View>
             </View>
           </View>
           
@@ -161,12 +174,18 @@ const styles = StyleSheet.create({
   planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
-    gap: 10,
   },
   planName: {
     fontSize: 18,
     fontWeight: '700',
+    flex: 1,
+    marginRight: 8,
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    gap: 6,
   },
   badge: {
     paddingHorizontal: 8,

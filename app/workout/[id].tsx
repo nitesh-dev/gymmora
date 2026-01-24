@@ -66,18 +66,15 @@ export default function WorkoutSessionScreen() {
       <Stack.Screen 
         options={{
           headerTitle: planDay?.dayLabel || 'Workout',
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <TouchableOpacity onPress={() => setIsPaused(!isPaused)}>
-                <IconSymbol name={isPaused ? "play.fill" : "multiply"} size={20} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
 
       <View style={[styles.headerSection, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <View style={styles.timerWrapper}>
+        <TouchableOpacity 
+          style={styles.timerWrapper} 
+          onPress={() => setIsPaused(!isPaused)}
+          activeOpacity={0.7}
+        >
           <ThemedText style={[styles.timerText, isPaused && { color: theme.icon }]}>{formatTime(duration)}</ThemedText>
           <View style={[styles.statusPill, { backgroundColor: isPaused ? 'rgba(255,159,10,0.1)' : theme.tint + '15' }]}>
             <View style={[styles.statusDot, { backgroundColor: isPaused ? '#FF9F0A' : theme.tint }]} />
@@ -85,7 +82,7 @@ export default function WorkoutSessionScreen() {
               {isPaused ? 'PAUSED' : 'LIVE'}
             </ThemedText>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -211,6 +208,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
     letterSpacing: -1,
+    lineHeight: 52,
+    paddingVertical: 4,
   },
   statusPill: {
     flexDirection: 'row',

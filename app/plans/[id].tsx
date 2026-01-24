@@ -101,10 +101,19 @@ export default function PlanDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerInfo}>
-            <View style={[styles.typeBadge, { backgroundColor: plan.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
-              <ThemedText style={[styles.typeText, { color: plan.type === 'SYSTEM' ? theme.tint : theme.text }]}>
-                {plan.type} PLAN
-              </ThemedText>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {plan.status === 'active' && (
+                <View style={[styles.typeBadge, { backgroundColor: theme.tint + '15' }]}>
+                  <ThemedText style={[styles.typeText, { color: theme.tint }]}>
+                    ACTIVE
+                  </ThemedText>
+                </View>
+              )}
+              <View style={[styles.typeBadge, { backgroundColor: plan.type === 'SYSTEM' ? theme.tint + '15' : 'rgba(255,255,255,0.05)' }]}>
+                <ThemedText style={[styles.typeText, { color: plan.type === 'SYSTEM' ? theme.tint : theme.text }]}>
+                  {plan.type} PLAN
+                </ThemedText>
+              </View>
             </View>
             <ThemedText style={styles.createdAt}>
               Created on {new Date(plan.createdAt).toLocaleDateString()}
@@ -171,28 +180,25 @@ export default function PlanDetailScreen() {
         </ScrollView>
       )}
 
-      {plan && (
+      {plan && plan.status !== 'active' && (
         <TouchableOpacity 
           style={[
             styles.startButton, 
             { 
-              backgroundColor: plan.status === 'active' ? theme.border : theme.tint, 
+              backgroundColor: theme.tint, 
               bottom: insets.bottom + 20 
             }
           ]}
-          onPress={plan.status === 'active' ? undefined : handleActivatePlan}
-          activeOpacity={plan.status === 'active' ? 1 : 0.7}
+          onPress={handleActivatePlan}
+          activeOpacity={0.7}
         >
           <IconSymbol 
-            name={plan.status === 'active' ? "checkmark.circle.fill" : "bolt.fill"} 
+            name="bolt.fill" 
             size={20} 
-            color={plan.status === 'active' ? theme.tint : "#FFFFFF"} 
+            color="#FFFFFF" 
           />
-          <ThemedText style={[
-            styles.startButtonText, 
-            plan.status === 'active' && { color: theme.text }
-          ]}>
-            {plan.status === 'active' ? 'Current Active Plan' : 'Set as Active Plan'}
+          <ThemedText style={styles.startButtonText}>
+            Set as Active Plan
           </ThemedText>
         </TouchableOpacity>
       )}
