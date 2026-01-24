@@ -38,7 +38,7 @@ interface IconSymbolProps {
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<ViewStyle>;
-  weight?: any; // Kept for compatibility with existing code
+  weight?: string; // Kept for compatibility with existing code
 }
 
 export function IconSymbol({

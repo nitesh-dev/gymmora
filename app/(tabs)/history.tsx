@@ -5,7 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useHistoryViewModel } from '@/view-models/use-history-view-model';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { RefreshControl, SectionList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -62,7 +62,7 @@ export default function HistoryScreen() {
           <TouchableOpacity 
             style={[styles.historyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => {
-              router.push(`/workout/log/${item.id}` as any);
+              router.push(`/workout/log/${item.id}` as Href);
             }}
             activeOpacity={0.7}
           >

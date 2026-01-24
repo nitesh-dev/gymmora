@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { PlanDayWithExercises } from '@/db/types';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { workoutService } from '@/services/workout-service';
 import { useEffect, useState } from 'react';
@@ -19,13 +20,13 @@ export default function WorkoutDetailsScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
   
-  const [planDay, setPlanDay] = useState<any>(null);
+  const [planDay, setPlanDay] = useState<PlanDayWithExercises | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       const data = await workoutService.getPlanDayById(Number(id));
-      setPlanDay(data);
+      setPlanDay(data || null);
       setIsLoading(false);
     }
     loadData();
@@ -45,7 +46,7 @@ export default function WorkoutDetailsScreen() {
       
       <CustomHeader
         transparent
-        title={planDay?.dayLabel}
+        title={planDay?.dayLabel || undefined}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}
       />
 
@@ -60,7 +61,7 @@ export default function WorkoutDetailsScreen() {
             </View>
             <View style={styles.stat}>
               <ThemedText style={styles.statValue}>
-                {planDay?.exercises?.reduce((acc: number, ex: any) => acc + ex.sets, 0)}
+                {planDay?.exercises?.reduce((acc: number, ex) => acc + ex.sets, 0)}
               </ThemedText>
               <ThemedText style={styles.statLabel}>Total Sets</ThemedText>
             </View>
@@ -69,11 +70,11 @@ export default function WorkoutDetailsScreen() {
 
         <View style={styles.content}>
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Exercises</ThemedText>
-          {planDay?.exercises?.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any) => (
+          {planDay?.exercises?.sort((a, b) => a.exerciseOrder - b.exerciseOrder).map((ex) => (
             <TouchableOpacity 
               key={ex.id} 
               style={[styles.exerciseCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-              onPress={() => router.push(`/exercises/${ex.exerciseId}` as any)}
+              onPress={() => router.push(`/exercises/${ex.exerciseId}` as Href)}
             >
               <View style={styles.exerciseImageContainer}>
                 {ex.exercise.gifUrl ? (
@@ -100,7 +101,7 @@ export default function WorkoutDetailsScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 20, backgroundColor: theme.background }]}>
         <TouchableOpacity 
           style={[styles.startButton, { backgroundColor: theme.tint }]}
-          onPress={() => router.replace(`/workout/${id}` as any)}
+          onPress={() => router.replace(`/workout/${id}` as Href)}
         >
           <ThemedText style={styles.startButtonText}>Start Workout</ThemedText>
           <IconSymbol name="play.fill" size={20} color="#FFF" />

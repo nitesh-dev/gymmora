@@ -1,3 +1,4 @@
+import { ExerciseWithMuscleGroupsAndEquipment, ExerciseWithRelations } from '@/db/types';
 import { eq } from 'drizzle-orm';
 import { getDb } from '../db/client';
 import { exerciseEquipment, exerciseMuscleGroups, exercises } from '../db/schema';
@@ -6,13 +7,13 @@ export const ExerciseService = {
   /**
    * Fetches exercises with optional filtering
    */
-  async getExercises(filters?: { search?: string; muscleGroup?: string; equipment?: string }) {
+  async getExercises(filters?: { search?: string; muscleGroup?: string; equipment?: string }): Promise<ExerciseWithMuscleGroupsAndEquipment[]> {
     try {
       const db = await getDb();
       if (!db) return [];
 
       const results = await db.query.exercises.findMany({
-        where: (table: any, { and, like }: any) => {
+        where: (table, { and, like }) => {
           const conditions = [];
           if (filters?.search) {
             conditions.push(like(table.title, `%${filters.search}%`));
@@ -27,13 +28,13 @@ export const ExerciseService = {
 
       let filtered = results;
       if (filters?.muscleGroup) {
-        filtered = filtered.filter((ex: any) => 
-          ex.muscleGroups.some((mg: any) => mg.name === filters.muscleGroup)
+        filtered = filtered.filter((ex) => 
+          ex.muscleGroups.some((mg) => mg.name === filters.muscleGroup)
         );
       }
       if (filters?.equipment) {
-        filtered = filtered.filter((ex: any) => 
-          ex.equipment.some((eq: any) => eq.name === filters.equipment)
+        filtered = filtered.filter((ex) => 
+          ex.equipment.some((eq) => eq.name === filters.equipment)
         );
       }
       return filtered;
@@ -46,9 +47,10 @@ export const ExerciseService = {
   /**
    * Fetches full details for a single exercise
    */
-  async getExerciseById(id: number) {
+  async getExerciseById(id: number): Promise<ExerciseWithRelations | null> {
     const db = await getDb();
-    return await db.query.exercises.findFirst({
+    if (!db) return null;
+    const result = await db.query.exercises.findFirst({
       where: eq(exercises.id, id),
       with: {
         content: true,
@@ -62,6 +64,7 @@ export const ExerciseService = {
         }
       },
     });
+    return (result || null) as ExerciseWithRelations | null;
   },
 
   /**
@@ -69,6 +72,7 @@ export const ExerciseService = {
    */
   async getUniqueMuscleGroups() {
     const db = await getDb();
+    if (!db) return [];
     const results = await db.selectDistinct({ name: exerciseMuscleGroups.name }).from(exerciseMuscleGroups);
     return results.map((r: { name: string }) => r.name);
   },
@@ -78,6 +82,7 @@ export const ExerciseService = {
    */
   async getUniqueEquipment() {
     const db = await getDb();
+    if (!db) return [];
     const results = await db.selectDistinct({ name: exerciseEquipment.name }).from(exerciseEquipment);
     return results.map((r: { name: string }) => r.name);
   },
@@ -87,6 +92,7 @@ export const ExerciseService = {
    */
   async addMockExercise() {
     const db = await getDb();
+    if (!db) return;
     const mockId = Math.floor(Math.random() * 1000000);
     await db.insert(exercises).values({
       id: mockId,

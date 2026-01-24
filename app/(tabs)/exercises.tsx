@@ -1,3 +1,4 @@
+import { ExerciseWithMuscleGroupsAndEquipment } from '@/db/types';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +33,7 @@ export default function ExercisesScreen() {
     equipmentList,
   } = useExercisesViewModel();
 
-  const renderExerciseItem = ({ item }: { item: any }) => (
+  const renderExerciseItem = ({ item }: { item: ExerciseWithMuscleGroupsAndEquipment }) => (
     <ExerciseCard
       title={item.title}
       overview={item.overview ?? undefined}

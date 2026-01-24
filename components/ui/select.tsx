@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React from 'react';
-import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { ThemedText } from '../themed-text';
 import { IconSymbol } from './icon-symbol';
 
@@ -9,8 +9,8 @@ interface SelectProps {
   label: string;
   value: string | number;
   options: (string | number)[];
-  onSelect: (value: any) => void;
-  containerStyle?: any;
+  onSelect: (value: string | number) => void;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function Select({ label, value, options, onSelect, containerStyle }: SelectProps) {

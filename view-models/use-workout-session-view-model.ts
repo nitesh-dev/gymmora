@@ -1,15 +1,16 @@
+import { PlanDayWithExercises, WorkoutSessionSet } from '@/db/types';
 import { workoutService } from '@/services/workout-service';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useWorkoutSessionViewModel(planDayId: number) {
-  const [planDay, setPlanDay] = useState<any>(null);
+  const [planDay, setPlanDay] = useState<PlanDayWithExercises | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [duration, setDuration] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   
   // Track logs for each exercise: map of exerciseId -> sets
   // Each set is { reps: number, weight: string, isCompleted: boolean }
-  const [workoutData, setWorkoutData] = useState<Record<number, any[]>>({});
+  const [workoutData, setWorkoutData] = useState<Record<number, WorkoutSessionSet[]>>({});
 
   const loadWorkout = useCallback(async () => {
     setIsLoading(true);
@@ -27,9 +28,9 @@ export function useWorkoutSessionViewModel(planDayId: number) {
     }
   }, [planDayId]);
 
-  const initializeWorkoutData = (exercises: any[]) => {
-    const initialData: Record<number, any[]> = {};
-    exercises.forEach((ex: any) => {
+  const initializeWorkoutData = (exercises: PlanDayWithExercises['exercises']) => {
+    const initialData: Record<number, WorkoutSessionSet[]> = {};
+    exercises.forEach((ex) => {
       initialData[ex.exerciseId] = Array.from({ length: ex.sets }).map((_, i) => ({
         setIndex: i,
         reps: ex.reps.toString(),
@@ -45,13 +46,15 @@ export function useWorkoutSessionViewModel(planDayId: number) {
   }, [loadWorkout]);
 
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (!isPaused && !isLoading) {
       interval = setInterval(() => {
         setDuration(d => d + 1);
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isPaused, isLoading]);
 
   const toggleSet = (exerciseId: number, setIndex: number) => {
@@ -63,7 +66,7 @@ export function useWorkoutSessionViewModel(planDayId: number) {
     }));
   };
 
-  const updateSet = (exerciseId: number, setIndex: number, fields: any) => {
+  const updateSet = (exerciseId: number, setIndex: number, fields: Partial<WorkoutSessionSet>) => {
     setWorkoutData(prev => ({
       ...prev,
       [exerciseId]: prev[exerciseId].map((set, i) => 
@@ -74,9 +77,9 @@ export function useWorkoutSessionViewModel(planDayId: number) {
 
   const finishWorkout = async () => {
     try {
-      const setsToSave: any[] = [];
-      Object.entries(workoutData).forEach(([exerciseId, sets]: [string, any]) => {
-        sets.forEach((set: any) => {
+      const setsToSave: { exerciseId: number; reps: number; weight: string; setIndex: number }[] = [];
+      Object.entries(workoutData).forEach(([exerciseId, sets]) => {
+        sets.forEach((set) => {
           if (set.isCompleted) {
             setsToSave.push({
               exerciseId: parseInt(exerciseId),

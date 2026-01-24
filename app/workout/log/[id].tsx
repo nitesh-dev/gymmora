@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { GroupedExercise } from '@/db/types';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWorkoutLogDetailViewModel } from '@/view-models/use-workout-log-detail-view-model';
 
@@ -70,7 +71,7 @@ export default function WorkoutLogDetailScreen() {
             onPress={() => log.planDay?.plan?.id && router.push(`/plans/${log.planDay.plan.id}`)}
             disabled={!log.planDay?.plan?.id}
           >
-            <ThemedText style={[styles.planName, log.planDay?.plan?.id && { color: theme.tint }]}>
+            <ThemedText style={[styles.planName, !!log.planDay?.plan?.id && { color: theme.tint }]}>
               {log.planDay?.plan?.name || 'Custom Plan'}
             </ThemedText>
           </TouchableOpacity>
@@ -96,7 +97,7 @@ export default function WorkoutLogDetailScreen() {
         <View style={styles.content}>
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Exercises Performed</ThemedText>
           
-          {log.groupedExercises.map((group: any, idx: number) => (
+          {log.groupedExercises.map((group: GroupedExercise, idx: number) => (
             <View key={idx} style={[styles.exerciseCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <TouchableOpacity 
                 style={styles.exerciseHeader}
@@ -138,7 +139,7 @@ export default function WorkoutLogDetailScreen() {
                   <ThemedText style={styles.tableHeadLabel}>REPS</ThemedText>
                 </View>
                 
-                {group.sets.map((set: any, sIdx: number) => (
+                {group.sets.map((set, sIdx: number) => (
                   <View key={sIdx} style={[styles.setRow, sIdx % 2 === 0 && { backgroundColor: 'rgba(255,255,255,0.02)' }]}>
                     <ThemedText style={styles.setIndex}>{sIdx + 1}</ThemedText>
                     <ThemedText style={styles.setData}>{set.weight} kg</ThemedText>

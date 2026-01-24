@@ -1,6 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { WorkoutPlanWithDays } from '@/db/types';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePlansViewModel } from '@/view-models/use-plans-view-model';
 
@@ -86,8 +87,8 @@ export default function PlansScreen() {
     );
   };
 
-  const renderPlanItem = ({ item }: { item: any }) => {
-    const workoutDays = item.days?.filter((d: any) => !d.isRestDay).length || 0;
+  const renderPlanItem = ({ item }: { item: WorkoutPlanWithDays }) => {
+    const workoutDays = item.days?.filter((d) => !d.isRestDay).length || 0;
     
     return (
       <TouchableOpacity 
@@ -156,7 +157,7 @@ export default function PlansScreen() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.createButton, { backgroundColor: theme.tint }]}
-              onPress={() => router.push('/plans/create' as any)}
+              onPress={() => router.push('/plans/create' as Href)}
             >
               <IconSymbol name="plus" size={24} color="#FFFFFF" />
             </TouchableOpacity>
@@ -186,7 +187,7 @@ export default function PlansScreen() {
               <ThemedText style={styles.emptySubText}>Create your first custom workout plan to start tracking your progress.</ThemedText>
               <TouchableOpacity 
                 style={[styles.emptyAction, { backgroundColor: theme.tint }]}
-                onPress={() => router.push('/plans/create' as any)}
+                onPress={() => router.push('/plans/create' as Href)}
               >
                 <ThemedText style={styles.emptyActionText}>Create New Plan</ThemedText>
               </TouchableOpacity>

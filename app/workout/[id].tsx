@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -102,10 +102,10 @@ export default function WorkoutSessionScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
       >
-        {planDay?.exercises.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any) => (
+        {planDay?.exercises.sort((a, b) => a.exerciseOrder - b.exerciseOrder).map((ex) => (
           <View key={ex.id} style={[styles.exerciseCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <TouchableOpacity 
-              onPress={() => router.push(`/exercises/${ex.exerciseId}` as any)}
+              onPress={() => router.push(`/exercises/${ex.exerciseId}` as Href)}
               activeOpacity={0.7}
               style={styles.exerciseHeader}
             >

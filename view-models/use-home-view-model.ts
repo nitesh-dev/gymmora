@@ -1,15 +1,16 @@
+import { PlanDayWithExercises, WorkoutLog } from '@/db/types';
 import { workoutService } from '@/services/workout-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 export function useHomeViewModel() {
-  const [todayWorkout, setTodayWorkout] = useState<any>(null);
-  const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
-  const [monthlyActivity, setMonthlyActivity] = useState<any[]>([]);
+  const [todayWorkout, setTodayWorkout] = useState<PlanDayWithExercises | null>(null);
+  const [weeklyActivity, setWeeklyActivity] = useState<WorkoutLog[]>([]);
+  const [monthlyActivity, setMonthlyActivity] = useState<WorkoutLog[]>([]);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalDuration: 0, streak: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
-  const calculateStreak = (logs: any[]) => {
+  const calculateStreak = (logs: WorkoutLog[]) => {
     if (logs.length === 0) return 0;
     const sortedLogs = [...logs].sort((a, b) => b.date.getTime() - a.date.getTime());
     let streak = 0;

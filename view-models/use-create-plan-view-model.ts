@@ -1,3 +1,4 @@
+import { Exercise, ExerciseWithMuscleGroupsAndEquipment } from '@/db/types';
 import { ExerciseService } from '@/services/exercise-service';
 import { planService } from '@/services/plan-service';
 import { useRouter } from 'expo-router';
@@ -54,20 +55,20 @@ export function useCreatePlanViewModel(planId?: number) {
             setName(plan.name);
             
             // Map days from DB to state
-            const stateDays = Array.from({ length: 7 }, (_, i) => {
-              const dbDay = plan.days.find((d: any) => d.dayOfWeek === i);
+            const stateDays: PlanDayState[] = Array.from({ length: 7 }, (_, i) => {
+              const dbDay = plan.days.find((d) => d.dayOfWeek === i);
               if (dbDay) {
                 return {
                   dayOfWeek: i,
                   dayLabel: dbDay.dayLabel || '',
                   isRestDay: dbDay.isRestDay,
-                  exercises: dbDay.exercises.map((de: any) => ({
+                  exercises: dbDay.exercises.map((de) => ({
                     exerciseId: de.exerciseId,
                     title: de.exercise?.title || 'Unknown',
                     sets: de.sets,
                     reps: de.reps,
                     order: de.exerciseOrder,
-                  })).sort((a: any, b: any) => a.order - b.order)
+                  })).sort((a, b) => a.order - b.order)
                 };
               }
               return {
@@ -92,7 +93,7 @@ export function useCreatePlanViewModel(planId?: number) {
 
   // Search/Picker State
   const [exerciseSearch, setExerciseSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<ExerciseWithMuscleGroupsAndEquipment[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null);
   const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
@@ -106,7 +107,7 @@ export function useCreatePlanViewModel(planId?: number) {
   }, []);
 
   // Keep track of search timeout for debouncing
-  const searchTimeout = useRef<any>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSearchExercises = async (text: string, muscle: string | null = selectedMuscleGroup) => {
     setExerciseSearch(text);
@@ -154,7 +155,7 @@ export function useCreatePlanViewModel(planId?: number) {
     ));
   };
 
-  const addExerciseToDay = (dayIndex: number, exercise: any) => {
+  const addExerciseToDay = (dayIndex: number, exercise: Exercise) => {
     setDays(prev => prev.map((day, i) => {
       if (i === dayIndex) {
         const exists = day.exercises.some(ex => ex.exerciseId === exercise.id);

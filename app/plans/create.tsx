@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Select } from '@/components/ui/select';
 import { Colors } from '@/constants/theme';
+import { Exercise } from '@/db/types';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCreatePlanViewModel } from '@/view-models/use-create-plan-view-model';
 
@@ -63,7 +64,7 @@ export default function CreatePlanScreen() {
 
   const selectedDay = days[selectedDayIndex];
 
-  const handleAddExercise = (exercise: any) => {
+  const handleAddExercise = (exercise: Exercise) => {
     addExerciseToDay(selectedDayIndex, exercise);
   };
 
@@ -216,13 +217,13 @@ export default function CreatePlanScreen() {
                       label="Sets"
                       options={[1, 2, 3, 4, 5]}
                       value={ex.sets}
-                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, val, ex.reps)}
+                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, Number(val), ex.reps)}
                     />
                     <Select
                       label="Reps"
                       options={[8, 12, 16, 20, 24, 28, 32]}
                       value={ex.reps}
-                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, ex.sets, val)}
+                      onSelect={(val) => updateExerciseSetsReps(selectedDayIndex, ex.exerciseId, ex.sets, Number(val))}
                     />
                   </View>
                 </View>

@@ -1,9 +1,29 @@
 import { sql } from 'drizzle-orm';
+import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import results from '../assets/results.json';
 import * as schema from '../db/schema';
 
+interface SeedExercise {
+  id: number;
+  title: string;
+  url: string;
+  overview: string | null;
+  gifUrl: string | null;
+  howToPerform: string[] | null;
+  tips: string[] | null;
+  benefits: string[] | null;
+  commonMistakes: string[] | null;
+  musclesWorked: {
+    img: string;
+    items: { name: string; percentage: string }[];
+  } | null;
+  muscleGroups: string[] | null;
+  equipment: string[] | null;
+  variations: { title: string; url: string }[] | null;
+}
+
 export class SeedService {
-  static async seedIfNeeded(db: any) {
+  static async seedIfNeeded(db: ExpoSQLiteDatabase<typeof schema>) {
     try {
       // 1. Check if we already have exercises
       const countResult = await db.select({ count: sql<number>`count(*)` }).from(schema.exercises);
@@ -17,16 +37,16 @@ export class SeedService {
       console.log('🌱 Starting database seed...');
       
       // We process in a transaction to ensure integrity
-      await db.transaction(async (tx: any) => {
-        const exercisesToInsert: any[] = [];
-        const contentsToInsert: any[] = [];
-        const musclesWorkedToInsert: any[] = [];
-        const muscleGroupsToInsert: any[] = [];
-        const equipmentToInsert: any[] = [];
+      await db.transaction(async (tx) => {
+        const exercisesToInsert: (typeof schema.exercises.$inferInsert)[] = [];
+        const contentsToInsert: (typeof schema.exerciseContent.$inferInsert)[] = [];
+        const musclesWorkedToInsert: (typeof schema.exerciseMusclesWorked.$inferInsert)[] = [];
+        const muscleGroupsToInsert: (typeof schema.exerciseMuscleGroups.$inferInsert)[] = [];
+        const equipmentToInsert: (typeof schema.exerciseEquipment.$inferInsert)[] = [];
         const urlToIdMap = new Map<string, number>();
 
         // Pre-process Data
-        for (const item of results as any[]) {
+        for (const item of results as unknown as SeedExercise[]) {
           urlToIdMap.set(item.url, item.id);
 
           exercisesToInsert.push({
@@ -35,7 +55,7 @@ export class SeedService {
             url: item.url,
             overview: item.overview,
             gifUrl: item.gifUrl,
-            musclesWorkedImg: item.musclesWorked.img,
+            musclesWorkedImg: item.musclesWorked?.img || null,
           });
 
           // Content Mapping
@@ -85,7 +105,7 @@ export class SeedService {
 
           // Muscles & Equipment
           if (item.musclesWorked?.items) {
-            item.musclesWorked.items.forEach((muscle: any) => {
+            item.musclesWorked.items.forEach((muscle) => {
               musclesWorkedToInsert.push({
                 exerciseId: item.id,
                 name: muscle.name,
@@ -101,7 +121,7 @@ export class SeedService {
           }
 
           if (item.equipment) {
-            item.equipment.forEach((equip: string) => {
+            item.equipment.forEach((equip) => {
               equipmentToInsert.push({ exerciseId: item.id, name: equip });
             });
           }
@@ -131,13 +151,16 @@ export class SeedService {
 
         // Linking variations
         console.log('Linking variations...');
-        const variationsToInsert: any[] = [];
-        for (const item of results as any[]) {
+        const variationsToInsert: (typeof schema.exerciseVariations.$inferInsert)[] = [];
+        for (const item of results as unknown as SeedExercise[]) {
           if (Array.isArray(item.variations)) {
             for (const v of item.variations) {
               const variationId = urlToIdMap.get(v.url);
               if (variationId) {
-                variationsToInsert.push({ exerciseId: item.id, variationId });
+                variationsToInsert.push({
+                  exerciseId: item.id,
+                  variationId: variationId,
+                });
               }
             }
           }
@@ -146,9 +169,9 @@ export class SeedService {
         for (let i = 0; i < variationsToInsert.length; i += batchSize) {
           await tx.insert(schema.exerciseVariations).values(variationsToInsert.slice(i, i + batchSize)).onConflictDoNothing();
         }
-      });
 
-      console.log('✅ Seeding complete!');
+        console.log('✅ Database seed completed successfully!');
+      });
     } catch (error) {
       console.error('❌ Failed to seed database:', error);
     }

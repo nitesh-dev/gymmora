@@ -1,13 +1,13 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React from 'react';
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { StyleProp, StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { ThemedText } from '../themed-text';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
-  containerStyle?: any;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function Input({ label, error, containerStyle, style, ...props }: InputProps) {

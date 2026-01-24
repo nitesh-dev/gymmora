@@ -1,9 +1,21 @@
+import { WorkoutLogWithRelations } from '@/db/types';
 import { workoutService } from '@/services/workout-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
+export type HistorySession = WorkoutLogWithRelations & {
+  totalSets: number;
+  totalVolume: number;
+  exercisesPerformed: string[];
+};
+
+export type HistorySection = {
+  title: string;
+  data: HistorySession[];
+};
+
 export function useHistoryViewModel() {
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistorySection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadHistory = useCallback(async () => {
@@ -12,8 +24,8 @@ export function useHistoryViewModel() {
       const logs = await workoutService.getAllLogs();
       
       // Group by month
-      const grouped: Record<string, any[]> = {};
-      logs.forEach((log: any) => {
+      const grouped: Record<string, HistorySession[]> = {};
+      logs.forEach((log) => {
         const date = new Date(log.date);
         const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
         if (!grouped[monthYear]) {
@@ -21,14 +33,14 @@ export function useHistoryViewModel() {
         }
         
         // Calculate volume for the session and unique exercises
-        const volume = log.sets.reduce((acc: number, set: any) => {
+        const volume = log.sets.reduce((acc, set) => {
           const weight = parseFloat(set.weight) || 0;
           return acc + (weight * set.repsDone);
         }, 0);
 
         // Get unique exercises performed
-        const exercisesMap = new Map();
-        log.sets.forEach((set: any) => {
+        const exercisesMap = new Map<number, string>();
+        log.sets.forEach((set) => {
           if (set.exercise && !exercisesMap.has(set.exercise.id)) {
             exercisesMap.set(set.exercise.id, set.exercise.title);
           }
@@ -39,7 +51,7 @@ export function useHistoryViewModel() {
           totalSets: log.sets.length,
           totalVolume: volume,
           exercisesPerformed: Array.from(exercisesMap.values()),
-        });
+        } as HistorySession);
       });
 
       const sections = Object.entries(grouped).map(([title, data]) => ({

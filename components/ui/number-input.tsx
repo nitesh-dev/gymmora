@@ -1,14 +1,14 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleProp, StyleSheet, TextInput, View, ViewStyle } from 'react-native';
 import { ThemedText } from '../themed-text';
 
 interface NumberInputProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  containerStyle?: any;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function NumberInput({ label, value, onChangeText, containerStyle }: NumberInputProps) {

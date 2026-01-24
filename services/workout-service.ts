@@ -1,6 +1,8 @@
 import { getDb } from '@/db/client';
+import * as schema from '@/db/schema';
 import { planDays, setLogs, workoutLogs, workoutPlans } from '@/db/schema';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 
 export const workoutService = {
   async getRecentLogs(limit = 5) {
@@ -123,11 +125,11 @@ export const workoutService = {
     });
   },
 
-  async saveWorkoutLog(data: { planDayId: number, duration: number, sets: any[] }) {
+  async saveWorkoutLog(data: { planDayId: number, duration: number, sets: { exerciseId: number, reps: number, weight?: string, setIndex: number }[] }) {
     const db = await getDb();
     if (!db) return null;
 
-    return await db.transaction(async (tx: any) => {
+    return await db.transaction(async (tx: ExpoSQLiteDatabase<typeof schema>) => {
       const [log] = await tx.insert(workoutLogs).values({
         planDayId: data.planDayId,
         date: new Date(),
@@ -157,7 +159,7 @@ export const workoutService = {
     
     return {
       totalWorkouts: logs.length,
-      totalDuration: logs.reduce((acc: number, log: any) => acc + (log.duration || 0), 0),
+      totalDuration: logs.reduce((acc: number, log) => acc + (log.duration || 0), 0),
     };
   },
 
@@ -173,8 +175,8 @@ export const workoutService = {
       },
     });
 
-    const history = logs.map((log: any) => {
-      const volume = log.sets.reduce((sum: number, set: any) => {
+    const history = logs.map((log) => {
+      const volume = log.sets.reduce((sum: number, set) => {
         const weight = parseFloat(set.weight) || 0;
         return sum + weight * set.repsDone;
       }, 0);
@@ -207,9 +209,9 @@ export const workoutService = {
     });
 
     const muscleCounts: Record<string, number> = {};
-    logs.forEach((log: any) => {
-      log.sets.forEach((set: any) => {
-        set.exercise?.muscleGroups.forEach((mg: any) => {
+    logs.forEach((log) => {
+      log.sets.forEach((set) => {
+        set.exercise?.muscleGroups.forEach((mg) => {
           muscleCounts[mg.name] = (muscleCounts[mg.name] || 0) + 1;
         });
       });
@@ -233,7 +235,7 @@ export const workoutService = {
 
     const prs: Record<number, { exerciseId: number; exercise: string; maxWeight: number; date: Date }> = {};
 
-    setsWithDetails.forEach((set: any) => {
+    setsWithDetails.forEach((set) => {
       const weight = parseFloat(set.weight) || 0;
       if (!prs[set.exerciseId] || weight > prs[set.exerciseId].maxWeight) {
         prs[set.exerciseId] = {
@@ -276,7 +278,7 @@ export const workoutService = {
     // Group by date and find max weight for each session
     const sessionMaxes: Record<string, { weight: number; date: Date; reps: number }> = {};
 
-    history.forEach((log: any) => {
+    history.forEach((log) => {
       const dateStr = new Date(log.workoutLog.date).toDateString();
       const weight = parseFloat(log.weight) || 0;
       

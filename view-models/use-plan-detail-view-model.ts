@@ -1,9 +1,10 @@
+import { WorkoutPlanWithDays } from '@/db/types';
 import { planService } from '@/services/plan-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 export function usePlanDetailViewModel(id: number) {
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<WorkoutPlanWithDays | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPlan = useCallback(async (silent = false) => {
@@ -11,7 +12,7 @@ export function usePlanDetailViewModel(id: number) {
     if (!silent) setIsLoading(true);
     try {
       const data = await planService.getPlanById(id);
-      setPlan(data);
+      setPlan(data || null);
     } catch (error) {
       console.error('Failed to load plan details:', error);
     } finally {

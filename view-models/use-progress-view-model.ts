@@ -1,3 +1,4 @@
+import { WorkoutLog } from '@/db/types';
 import { workoutService } from '@/services/workout-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -9,10 +10,10 @@ export interface ProgressSummary {
 }
 
 export function useProgressViewModel() {
-  const [volumeHistory, setVolumeHistory] = useState<any[]>([]);
-  const [muscleStats, setMuscleStats] = useState<any[]>([]);
-  const [prs, setPrs] = useState<any[]>([]);
-  const [consistencyLogs, setConsistencyLogs] = useState<any[]>([]);
+  const [volumeHistory, setVolumeHistory] = useState<{ date: Date; volume: number }[]>([]);
+  const [muscleStats, setMuscleStats] = useState<{ name: string; value: number }[]>([]);
+  const [prs, setPrs] = useState<{ exerciseId: number; exercise: string; maxWeight: number; date: Date }[]>([]);
+  const [consistencyLogs, setConsistencyLogs] = useState<WorkoutLog[]>([]);
   const [summary, setSummary] = useState<ProgressSummary>({
     totalWorkouts: 0,
     totalVolume: 0,
@@ -20,7 +21,7 @@ export function useProgressViewModel() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const calculateStreak = (logs: any[]) => {
+  const calculateStreak = (logs: WorkoutLog[]) => {
     if (logs.length === 0) return 0;
     
     // Sort logs by date descending
@@ -69,7 +70,7 @@ export function useProgressViewModel() {
         workoutService.getConsistencyData(),
       ]);
 
-      const totalVolume = volume.reduce((acc: number, curr: any) => acc + curr.volume, 0);
+      const totalVolume = volume.reduce((acc: number, curr) => acc + curr.volume, 0);
       const activeStreak = calculateStreak(consistency);
 
       setVolumeHistory(volume);

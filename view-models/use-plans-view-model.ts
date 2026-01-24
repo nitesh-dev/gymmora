@@ -1,9 +1,10 @@
+import { WorkoutPlanWithDays } from '@/db/types';
 import { planService } from '@/services/plan-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 export function usePlansViewModel() {
-  const [plans, setPlans] = useState<any[]>([]);
+  const [plans, setPlans] = useState<WorkoutPlanWithDays[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPlans = useCallback(async (silent = false) => {

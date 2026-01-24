@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -109,13 +109,13 @@ export default function PlanDetailScreen() {
           </View>
 
           <View style={styles.daysList}>
-            {plan.days?.sort((a: any, b: any) => a.dayOfWeek - b.dayOfWeek).map((day: any) => (
+            {plan.days?.sort((a, b) => a.dayOfWeek - b.dayOfWeek).map((day) => (
               <TouchableOpacity 
                 key={day.id} 
                 activeOpacity={day.isRestDay ? 1 : 0.7}
                 onPress={() => {
                   if (!day.isRestDay) {
-                    router.push(`/workout/details/${day.id}` as any);
+                    router.push(`/workout/details/${day.id}` as Href);
                   }
                 }}
                 style={[
@@ -147,17 +147,11 @@ export default function PlanDetailScreen() {
 
                 {!day.isRestDay && day.exercises?.length > 0 && (
                   <View style={styles.exercisePreview}>
-                    {day.exercises.sort((a: any, b: any) => a.exerciseOrder - b.exerciseOrder).map((ex: any, idx: number) => (
-                      <View key={ex.id} style={styles.exerciseItem}>
-                        <ThemedText style={styles.exerciseIndex}>{idx + 1}</ThemedText>
-                        <View style={styles.exerciseMeta}>
-                          <ThemedText style={styles.exerciseName} numberOfLines={1}>
-                            {ex.exercise?.title}
-                          </ThemedText>
-                          <ThemedText style={styles.exerciseSets}>
-                            {ex.sets} sets × {ex.reps} reps
-                          </ThemedText>
-                        </View>
+                    {day.exercises.sort((a, b) => a.exerciseOrder - b.exerciseOrder).map((ex) => (
+                      <View key={ex.id} style={styles.exerciseRow}>
+                        <View style={styles.exerciseBullet} />
+                        <ThemedText style={styles.exerciseTitle} numberOfLines={1}>{ex.exercise.title}</ThemedText>
+                        <ThemedText style={styles.exerciseDetail}>{ex.sets} × {ex.reps}</ThemedText>
                       </View>
                     ))}
                   </View>
@@ -290,30 +284,24 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.05)',
     paddingTop: 16,
   },
-  exerciseItem: {
+  exerciseRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  exerciseIndex: {
-    fontSize: 12,
-    fontWeight: '800',
-    opacity: 0.3,
-    width: 20,
+  exerciseBullet: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
-  exerciseMeta: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  exerciseName: {
+  exerciseTitle: {
     fontSize: 15,
     fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
-  exerciseSets: {
+  exerciseDetail: {
     fontSize: 13,
     opacity: 0.5,
   },

@@ -1,6 +1,9 @@
 import { getDb } from '@/db/client';
+import * as schema from '@/db/schema';
 import { planDayExercises, planDays, workoutPlans } from '@/db/schema';
+import { WorkoutPlanWithDays } from '@/db/types';
 import { eq } from 'drizzle-orm';
+import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 
 export interface CreatePlanData {
   name: string;
@@ -18,13 +21,28 @@ export interface CreatePlanData {
   }[];
 }
 
+interface ImportedPlanData {
+  name: string;
+  days: {
+    dayOfWeek: number | string;
+    dayLabel?: string;
+    isRestDay?: boolean;
+    exercises?: {
+      exerciseId: number | string;
+      sets: number | string;
+      reps: number | string;
+      order: number | string;
+    }[];
+  }[];
+}
+
 export const planService = {
-  async getPlans() {
+  async getPlans(): Promise<WorkoutPlanWithDays[]> {
     const db = await getDb();
     if (!db) return [];
     
     return await db.query.workoutPlans.findMany({
-      orderBy: (plans: any, { desc }: any) => [desc(plans.createdAt)],
+      orderBy: (plans, { desc }) => [desc(plans.createdAt)],
       with: {
         days: {
           with: {
@@ -63,7 +81,7 @@ export const planService = {
     if (!db) throw new Error('Database not initialized');
 
     console.log('Creating plan with data:', data);
-    return await db.transaction(async (tx: any) => {
+    return await db.transaction(async (tx: ExpoSQLiteDatabase<typeof schema>) => {
       // 1. Create the plan
       const insertResult = await tx.insert(workoutPlans).values({
         name: data.name,
@@ -108,7 +126,7 @@ export const planService = {
     const db = await getDb();
     if (!db) throw new Error('Database not initialized');
 
-    return await db.transaction(async (tx: any) => {
+    return await db.transaction(async (tx: ExpoSQLiteDatabase<typeof schema>) => {
       // 1. Update the plan metadata
       await tx.update(workoutPlans)
         .set({ name: data.name })
@@ -163,15 +181,15 @@ export const planService = {
 
   async exportAllCustomPlans() {
     const plans = await this.getPlans();
-    const customPlans = plans.filter((p: any) => p.type === 'CUSTOM');
+    const customPlans = plans.filter((p) => p.type === 'CUSTOM');
     
-    const exportData = customPlans.map((plan: any) => ({
+    const exportData = customPlans.map((plan) => ({
       name: plan.name,
-      days: plan.days.map((day: any) => ({
+      days: plan.days.map((day) => ({
         dayOfWeek: day.dayOfWeek,
         dayLabel: day.dayLabel,
         isRestDay: day.isRestDay,
-        exercises: day.exercises.map((ex: any) => ({
+        exercises: day.exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
           sets: ex.sets,
           reps: ex.reps,
@@ -189,7 +207,7 @@ export const planService = {
       const plansArray = Array.isArray(data) ? data : [data];
       
       const results = [];
-      for (const planData of plansArray) {
+      for (const planData of plansArray as ImportedPlanData[]) {
         // Basic validation
         if (!planData.name || !Array.isArray(planData.days)) {
           console.warn(`Skipping invalid plan: ${planData.name || 'Unknown'}`);
@@ -197,7 +215,9 @@ export const planService = {
         }
 
         // Ensure all 7 days are represented (0=Sun to 6=Sat)
-        const importedDaysMap = new Map<number, any>(planData.days.map((d: any) => [Number(d.dayOfWeek), d]));
+        const importedDaysMap = new Map<number, ImportedPlanData['days'][0]>(
+          planData.days.map((d) => [Number(d.dayOfWeek), d])
+        );
 
         const planToCreate: CreatePlanData = {
           name: `${planData.name} (Imported)`,
@@ -209,7 +229,7 @@ export const planService = {
                 dayOfWeek: dow,
                 dayLabel: importedDay.dayLabel || '',
                 isRestDay: !!importedDay.isRestDay,
-                exercises: (importedDay.exercises || []).map((ex: any) => ({
+                exercises: (importedDay.exercises || []).map((ex) => ({
                   exerciseId: Number(ex.exerciseId),
                   sets: Number(ex.sets),
                   reps: Number(ex.reps),

@@ -1,5 +1,7 @@
+import * as schema from '@/db/schema';
 import { SeedService } from '@/services/seed-service';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -21,7 +23,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [db, setDb] = useState<any>(null);
+  const [db, setDb] = useState<ExpoSQLiteDatabase<typeof schema> | null>(null);
 
   useEffect(() => {
     if (!db) {
@@ -51,7 +53,7 @@ export default function RootLayout() {
   );
 }
 
-function AppContent({ db }: { db: any }) {
+function AppContent({ db }: { db: ExpoSQLiteDatabase<typeof schema> }) {
   console.log('Running migrations...');
   const { success, error } = useMigrations(db, migrations);
 

@@ -6,7 +6,7 @@ import { Section } from '@/components/ui/section';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useHomeViewModel } from '@/view-models/use-home-view-model';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -60,7 +60,7 @@ export default function HomeScreen() {
             <TouchableOpacity 
               style={[styles.heroCard, { backgroundColor: theme.tint }]}
               activeOpacity={0.9}
-              onPress={() => router.push(`/workout/details/${todayWorkout.id}` as any)}
+              onPress={() => router.push(`/workout/details/${todayWorkout.id}` as Href)}
             >
               <View style={styles.heroContent}>
                 <View>
@@ -75,7 +75,7 @@ export default function HomeScreen() {
               </View>
               
               <View style={styles.musclesHint}>
-                {todayWorkout.exercises?.slice(0, 3).map((ex: any, i: number) => (
+                {todayWorkout.exercises?.slice(0, 3).map((ex, i) => (
                   <ThemedText key={i} style={styles.muscleTag}>
                     {ex.exercise?.title}{i < 2 && todayWorkout.exercises.length > i + 1 ? ' • ' : ''}
                   </ThemedText>

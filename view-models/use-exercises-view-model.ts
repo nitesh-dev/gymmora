@@ -1,12 +1,9 @@
+import { ExerciseWithMuscleGroupsAndEquipment } from '@/db/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { exercises } from '../db/schema';
 import { ExerciseService } from '../services/exercise-service';
 
-// Infer the type from the schema or service
-export type Exercise = typeof exercises.$inferSelect;
-
 export function useExercisesViewModel() {
-  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
+  const [exerciseList, setExerciseList] = useState<ExerciseWithMuscleGroupsAndEquipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null);
@@ -14,7 +11,7 @@ export function useExercisesViewModel() {
   
   const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
   const [equipmentList, setEquipmentList] = useState<string[]>([]);
-  const searchTimeout = useRef<any>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchFilters = useCallback(async () => {
     try {
