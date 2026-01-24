@@ -260,4 +260,35 @@ export const workoutService = {
       orderBy: [desc(workoutLogs.date)],
     });
   },
+
+  async getExerciseHistory(exerciseId: number) {
+    const db = await getDb();
+    if (!db) return [];
+
+    const history = await db.query.setLogs.findMany({
+      where: eq(setLogs.exerciseId, exerciseId),
+      with: {
+        workoutLog: true,
+      },
+      orderBy: [desc(setLogs.id)], // Get logs, then we'll process by date
+    });
+
+    // Group by date and find max weight for each session
+    const sessionMaxes: Record<string, { weight: number; date: Date; reps: number }> = {};
+
+    history.forEach((log: any) => {
+      const dateStr = new Date(log.workoutLog.date).toDateString();
+      const weight = parseFloat(log.weight) || 0;
+      
+      if (!sessionMaxes[dateStr] || weight > sessionMaxes[dateStr].weight) {
+        sessionMaxes[dateStr] = {
+          weight,
+          date: log.workoutLog.date,
+          reps: log.repsDone,
+        };
+      }
+    });
+
+    return Object.values(sessionMaxes).sort((a, b) => a.date.getTime() - b.date.getTime());
+  },
 };

@@ -1,10 +1,12 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MetricCard } from '@/components/ui/progress/metric-card';
 import { Section } from '@/components/ui/section';
 import { Colors } from '@/constants/theme';
@@ -16,6 +18,7 @@ const screenWidth = Dimensions.get('window').width;
 export default function ProgressScreen() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+  const router = useRouter();
   const { summary, volumeHistory, muscleStats, prs, consistencyLogs, isLoading } = useProgressViewModel();
 
   const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -183,17 +186,24 @@ export default function ProgressScreen() {
             <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
               {prs.length > 0 ? (
                 prs.map((pr, index) => (
-                  <View key={index} style={[styles.prItem, index === prs.length - 1 && { borderBottomWidth: 0 }]}>
+                  <TouchableOpacity 
+                    key={index} 
+                    style={[styles.prItem, index === prs.length - 1 && { borderBottomWidth: 0 }]}
+                    onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: pr.exerciseId } })}
+                  >
                     <View>
                       <ThemedText type="defaultSemiBold">{pr.exercise}</ThemedText>
                       <ThemedText style={styles.prDate}>
                         {new Date(pr.date).toLocaleDateString()}
                       </ThemedText>
                     </View>
-                    <ThemedText type="defaultSemiBold" style={styles.prWeight}>
-                      {pr.maxWeight} kg
-                    </ThemedText>
-                  </View>
+                    <View style={styles.prAction}>
+                      <ThemedText type="defaultSemiBold" style={styles.prWeight}>
+                        {pr.maxWeight} kg
+                      </ThemedText>
+                      <IconSymbol name="chevron.right" size={14} color={theme.icon} style={{ opacity: 0.3, marginLeft: 8 }} />
+                    </View>
+                  </TouchableOpacity>
                 ))
               ) : (
                 <ThemedText style={styles.emptyText}>No PRs recorded yet</ThemedText>
@@ -297,5 +307,9 @@ const styles = StyleSheet.create({
   },
   prWeight: {
     color: '#2C9AFF',
+  },
+  prAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
