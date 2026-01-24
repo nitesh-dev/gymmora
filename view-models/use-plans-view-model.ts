@@ -34,18 +34,18 @@ export function usePlansViewModel() {
     }
   };
 
-  const importPlan = async (jsonContent: string) => {
+  const importPlans = async (jsonContent: string) => {
     try {
-      await planService.validateAndImportPlan(jsonContent);
+      await planService.validateAndImportPlans(jsonContent);
       await loadPlans();
     } catch (error) {
-      console.error('Failed to import plan:', error);
+      console.error('Failed to import plans:', error);
       throw error;
     }
   };
 
-  const exportPlan = async (id: number) => {
-    return await planService.exportPlan(id);
+  const exportAllPlans = async () => {
+    return await planService.exportAllCustomPlans();
   };
 
   const getTemplate = () => {
@@ -57,8 +57,8 @@ export function usePlansViewModel() {
     isLoading,
     refreshPlans: loadPlans,
     deletePlan,
-    importPlan,
-    exportPlan,
+    importPlans,
+    exportAllPlans,
     getTemplate,
   };
 }

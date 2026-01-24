@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
-import { getDb, db as staticDb } from '../db/client';
+import { getDb } from '../db/client';
 import migrations from '../drizzle/migrations';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -21,7 +21,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [db, setDb] = useState(staticDb);
+  const [db, setDb] = useState<any>(null);
 
   useEffect(() => {
     if (!db) {

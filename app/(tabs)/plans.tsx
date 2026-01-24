@@ -18,7 +18,7 @@ export default function PlansScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
-  const { plans, isLoading, refreshPlans, importPlan, exportPlan, getTemplate } = usePlansViewModel();
+  const { plans, isLoading, refreshPlans, importPlans, exportAllPlans, getTemplate } = usePlansViewModel();
 
   const handleImport = async () => {
     try {
@@ -32,27 +32,27 @@ export default function PlansScreen() {
       const fileUri = result.assets[0].uri;
       const content = await FileSystem.readAsStringAsync(fileUri);
       
-      await importPlan(content);
-      Alert.alert('Success', 'Plan imported successfully');
+      await importPlans(content);
+      Alert.alert('Success', 'Plans imported successfully');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to import plan');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to import plans');
     }
   };
 
-  const handleExport = async (id: number, name: string) => {
+  const handleExportAll = async () => {
     try {
-      const jsonContent = await exportPlan(id);
-      const fileName = `${name.replace(/\s+/g, '_').toLowerCase()}_plan.json`;
+      const jsonContent = await exportAllPlans();
+      const fileName = `gymmora_plans_backup_${new Date().toISOString().split('T')[0]}.json`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
       
       await FileSystem.writeAsStringAsync(fileUri, jsonContent);
       await Sharing.shareAsync(fileUri, {
         mimeType: 'application/json',
-        dialogTitle: `Export ${name}`,
+        dialogTitle: 'Export All Custom Plans',
         UTI: 'public.json',
       });
     } catch (error) {
-      Alert.alert('Error', 'Failed to export plan');
+      Alert.alert('Error', 'Failed to export plans');
     }
   };
 
@@ -78,7 +78,8 @@ export default function PlansScreen() {
       'Manage Plans',
       'Select an action',
       [
-        { text: 'Import Plan', onPress: handleImport },
+        { text: 'Import Plans', onPress: handleImport },
+        { text: 'Export All Custom Plans', onPress: handleExportAll },
         { text: 'Download Template', onPress: handleDownloadTemplate },
         { text: 'Cancel', style: 'cancel' },
       ]
@@ -132,15 +133,6 @@ export default function PlansScreen() {
         </View>
         
         <View style={styles.cardActions}>
-          <TouchableOpacity 
-            onPress={(e) => {
-              e.stopPropagation();
-              handleExport(item.id, item.name);
-            }}
-            style={styles.cardIconButton}
-          >
-            <IconSymbol name="paperplane.fill" size={18} color={theme.tint} />
-          </TouchableOpacity>
           <IconSymbol name="chevron.right" size={16} color={theme.icon} style={{ opacity: 0.3 }} />
         </View>
       </TouchableOpacity>
