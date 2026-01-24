@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { exercises } from '../db/schema';
 import { ExerciseService } from '../services/exercise-service';
 
@@ -14,6 +14,7 @@ export function useExercisesViewModel() {
   
   const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
   const [equipmentList, setEquipmentList] = useState<string[]>([]);
+  const searchTimeout = useRef<any>(null);
 
   const fetchFilters = useCallback(async () => {
     try {
@@ -29,19 +30,25 @@ export function useExercisesViewModel() {
   }, []);
 
   const fetchExercises = useCallback(async () => {
+    // Clear existing timeout
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
     setIsLoading(true);
-    try {
-      const data = await ExerciseService.getExercises({
-        search: searchQuery,
-        muscleGroup: selectedMuscleGroup || undefined,
-        equipment: selectedEquipment || undefined
-      });
-      setExerciseList(data);
-    } catch (error) {
-      console.error('Error fetching exercises:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const data = await ExerciseService.getExercises({
+          search: searchQuery,
+          muscleGroup: selectedMuscleGroup || undefined,
+          equipment: selectedEquipment || undefined
+        });
+        setExerciseList(data);
+      } catch (error) {
+        console.error('Error fetching exercises:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
   }, [searchQuery, selectedMuscleGroup, selectedEquipment]);
 
   useEffect(() => {

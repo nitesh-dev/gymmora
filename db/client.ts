@@ -5,14 +5,25 @@ import * as schema from './schema';
 
 const DB_NAME = 'gymmoradb2';
 
-export const expoDb = Platform.OS === 'web' 
-  ? null 
-  : SQLite.openDatabaseSync(DB_NAME);
-
-export const db = expoDb ? drizzle(expoDb, { schema }) : null;
+// Cache database connections
+let sqliteDb: SQLite.SQLiteDatabase | null = null;
+let drizzleInstance: any = null;
 
 // Helper to get DB asynchronously (works on both web and native)
 export async function getDb() {
-  const db = await SQLite.openDatabaseAsync(DB_NAME);
-  return drizzle(db, { schema });
+  if (Platform.OS === 'web') return null; // Web not supported with this setup yet
+  
+  if (!sqliteDb) {
+    sqliteDb = await SQLite.openDatabaseAsync(DB_NAME);
+  }
+  
+  if (!drizzleInstance) {
+    drizzleInstance = drizzle(sqliteDb, { schema });
+  }
+  
+  return drizzleInstance;
 }
+
+// For immediate use if already initialized, but preferred to use getDb()
+export const db = drizzleInstance;
+export const expoDb = sqliteDb;
