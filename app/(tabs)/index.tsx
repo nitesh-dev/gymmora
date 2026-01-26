@@ -66,7 +66,7 @@ export default function HomeScreen() {
                 <View>
                   <ThemedText style={styles.heroWorkoutName}>{todayWorkout.dayLabel || 'Workout'}</ThemedText>
                   <ThemedText style={styles.heroSubtitle}>
-                    {todayWorkout.plan?.name || 'Active Plan'} • {todayWorkout.exercises?.length || 0} Exercises
+                    {todayWorkout.week?.plan?.name || 'Active Plan'} • WK {todayWorkout.week?.weekNumber} • {todayWorkout.exercises?.length || 0} Exercises
                   </ThemedText>
                 </View>
                 <View style={[styles.playButton, { backgroundColor: '#FFFFFF' }]}>

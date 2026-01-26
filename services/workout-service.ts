@@ -1,58 +1,80 @@
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
-import { planDays, setLogs, workoutLogs, workoutPlans } from '@/db/schema';
+import { planDays, planWeeks, setLogs, workoutLogs, workoutPlans } from '@/db/schema';
+import { PlanDayWithExercises, WorkoutLog, WorkoutLogWithRelations } from '@/db/types';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 
 export const workoutService = {
-  async getRecentLogs(limit = 5) {
+  async getRecentLogs(limit = 5): Promise<WorkoutLogWithRelations[]> {
     const db = await getDb();
     if (!db) return [];
 
-    return await db.query.workoutLogs.findMany({
+    const logs = await db.query.workoutLogs.findMany({
       limit,
       orderBy: [desc(workoutLogs.date)],
       with: {
         planDay: {
           with: {
-            plan: true,
+            week: {
+              with: {
+                plan: true
+              }
+            }
           },
         },
+        sets: {
+          with: {
+            exercise: true
+          }
+        }
       },
     });
+    
+    return logs as unknown as WorkoutLogWithRelations[];
   },
 
-  async getAllLogs() {
+  async getAllLogs(): Promise<WorkoutLogWithRelations[]> {
     const db = await getDb();
     if (!db) return [];
 
-    return await db.query.workoutLogs.findMany({
+    const logs = await db.query.workoutLogs.findMany({
       orderBy: [desc(workoutLogs.date)],
       with: {
         planDay: {
           with: {
-            plan: true,
+            week: {
+              with: {
+                plan: true
+              }
+            }
           },
         },
         sets: {
           with: {
-            exercise: true,
+            exercise: true
           }
         }
       },
     });
+
+    return logs as unknown as WorkoutLogWithRelations[];
   },
 
-  async getWorkoutLogById(id: number) {
+  async getWorkoutLogById(id: number): Promise<WorkoutLogWithRelations | null> {
     const db = await getDb();
     if (!db) return null;
 
-    return await db.query.workoutLogs.findFirst({
+    const log = await db.query.workoutLogs.findFirst({
       where: eq(workoutLogs.id, id),
       with: {
         planDay: {
           with: {
-            plan: true,
+            week: {
+              with: {
+                plan: true
+              }
+            }
           },
         },
         sets: {
@@ -62,41 +84,59 @@ export const workoutService = {
         }
       },
     });
+
+    return (log as unknown as WorkoutLogWithRelations) || null;
   },
 
-  async getWeeklyActivity(startDate: Date, endDate: Date) {
+  async getWeeklyActivity(startDate: Date, endDate: Date): Promise<WorkoutLog[]> {
     const db = await getDb();
     if (!db) return [];
 
-    return await db.query.workoutLogs.findMany({
+    const logs = await db.query.workoutLogs.findMany({
       where: and(
         gte(workoutLogs.date, startDate),
         lte(workoutLogs.date, endDate),
         eq(workoutLogs.status, 'COMPLETED')
       ),
     });
+
+    return logs as unknown as WorkoutLog[];
   },
 
-  async getTodayWorkout() {
+  async getTodayWorkout(): Promise<PlanDayWithExercises | null> {
     const db = await getDb();
     if (!db) return null;
 
-    const today = new Date().getDay(); // 0 is Sunday, 1 is Monday...
+    const todayDayOfWeek = new Date().getDay();
 
-    // Fetch the active plan
     const activePlan = await db.query.workoutPlans.findFirst({
       where: eq(workoutPlans.status, 'active'),
     });
 
     if (!activePlan) return null;
 
+    // 1. Find the specific week record for this plan and current week number
+    const currentWeek = await db.query.planWeeks.findFirst({
+      where: and(
+        eq(planWeeks.planId, activePlan.id),
+        eq(planWeeks.weekNumber, activePlan.currentWeek)
+      ),
+    });
+
+    if (!currentWeek) return null;
+
+    // 2. Find the day for that specific week
     const todayPlanDay = await db.query.planDays.findFirst({
       where: and(
-        eq(planDays.planId, activePlan.id),
-        eq(planDays.dayOfWeek, today)
+        eq(planDays.weekId, currentWeek.id),
+        eq(planDays.dayOfWeek, todayDayOfWeek)
       ),
       with: {
-        plan: true,
+        week: {
+          with: {
+            plan: true
+          }
+        },
         exercises: {
           with: {
             exercise: true,
@@ -105,17 +145,21 @@ export const workoutService = {
       },
     });
 
-    return todayPlanDay || null;
+    return (todayPlanDay as unknown as PlanDayWithExercises) || null;
   },
 
-  async getPlanDayById(id: number) {
+  async getPlanDayById(id: number): Promise<PlanDayWithExercises | null> {
     const db = await getDb();
     if (!db) return null;
 
-    return await db.query.planDays.findFirst({
+    const day = await db.query.planDays.findFirst({
       where: eq(planDays.id, id),
       with: {
-        plan: true,
+        week: {
+          with: {
+            plan: true
+          }
+        },
         exercises: {
           with: {
             exercise: true,
@@ -123,6 +167,8 @@ export const workoutService = {
         },
       },
     });
+
+    return day as unknown as PlanDayWithExercises;
   },
 
   async saveWorkoutLog(data: { planDayId: number, duration: number, sets: { exerciseId: number, reps: number, weight?: string, setIndex: number }[] }) {
@@ -151,7 +197,7 @@ export const workoutService = {
     });
   },
 
-  async getWorkoutStats() {
+  async getWorkoutStats(): Promise<{ totalWorkouts: number; totalDuration: number }> {
     const db = await getDb();
     if (!db) return { totalWorkouts: 0, totalDuration: 0 };
 

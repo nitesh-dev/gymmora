@@ -88,7 +88,9 @@ export default function PlansScreen() {
   };
 
   const renderPlanItem = ({ item }: { item: WorkoutPlanWithDays }) => {
-    const workoutDays = item.days?.filter((d) => !d.isRestDay).length || 0;
+    const workoutDays = item.weeks?.reduce((acc: number, week) => 
+      acc + (week.days?.filter((d) => !d.isRestDay).length || 0), 0
+    ) || 0;
     
     return (
       <TouchableOpacity 

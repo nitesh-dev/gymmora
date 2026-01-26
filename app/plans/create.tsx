@@ -1,15 +1,15 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -41,6 +41,12 @@ export default function CreatePlanScreen() {
   const {
     name,
     setName,
+    weeks,
+    currentWeekIndex,
+    setCurrentWeekIndex,
+    addWeek,
+    removeWeek,
+    duplicateWeek,
     days,
     toggleRestDay,
     updateDayLabel,
@@ -62,7 +68,8 @@ export default function CreatePlanScreen() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(1); // Default to Mon
   const [showExercisePicker, setShowExercisePicker] = useState(false);
 
-  const selectedDay = days[selectedDayIndex];
+  // Safely get selected day
+  const selectedDay = days[selectedDayIndex] || (days.length > 0 ? days[0] : { isRestDay: true, exercises: [] });
 
   const handleAddExercise = (exercise: Exercise) => {
     addExerciseToDay(selectedDayIndex, exercise);
@@ -124,6 +131,52 @@ export default function CreatePlanScreen() {
             value={name}
             onChangeText={setName}
           />
+        </View>
+
+        {/* Week Selector */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionLabel}>PERIODIZATION</ThemedText>
+            <TouchableOpacity onPress={addWeek} style={styles.addWeekButton}>
+              <IconSymbol name="plus" size={16} color={theme.tint} />
+              <ThemedText style={[styles.addWeekText, { color: theme.tint }]}>Add Week</ThemedText>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.weekTabsContainer} contentContainerStyle={styles.weekTabsContent}>
+            {weeks.map((week, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setCurrentWeekIndex(index)}
+                style={[
+                  styles.weekTab,
+                  { borderColor: index === currentWeekIndex ? theme.tint : 'rgba(255,255,255,0.1)' },
+                  index === currentWeekIndex && { backgroundColor: theme.tint + '10' }
+                ]}
+              >
+                <ThemedText style={[
+                   styles.weekTabText,
+                   { color: index === currentWeekIndex ? theme.tint : theme.text, opacity: index === currentWeekIndex ? 1 : 0.4 }
+                ]}>
+                  W{week.weekNumber}
+                </ThemedText>
+                
+                {weeks.length > 1 && index === currentWeekIndex && (
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity onPress={() => duplicateWeek(index)} style={styles.duplicateButton}>
+                      <IconSymbol name="plus" size={12} color={theme.tint} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeWeek(index)} style={styles.duplicateButton}>
+                      <IconSymbol name="trash.fill" size={12} color="#FF3B30" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={addWeek} style={styles.addWeekButton}>
+              <IconSymbol name="plus" size={16} color={theme.tint} />
+              <ThemedText style={[styles.addWeekText, { color: theme.tint }]}>Add Week</ThemedText>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         {/* Day Selector */}
@@ -364,6 +417,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
+    paddingBottom: 40,
   },
   section: {
     marginBottom: 24,
@@ -376,6 +430,49 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 4,
     textTransform: 'uppercase',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  addWeekButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: 12,
+  },
+  addWeekText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  weekTabsContainer: {
+    marginBottom: 8,
+  },
+  weekTabsContent: {
+    gap: 8,
+    alignItems: 'center',
+  },
+  weekTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 70,
+    justifyContent: 'center',
+  },
+  weekTabText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  duplicateButton: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 6,
+    borderRadius: 6,
   },
   daySelector: {
     flexDirection: 'row',

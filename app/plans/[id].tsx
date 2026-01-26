@@ -1,4 +1,5 @@
 import { Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { CustomHeader } from '@/components/ui/custom-header';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { PlanDay, PlanWeekWithDays } from '@/db/types';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { planService } from '@/services/plan-service';
 import { usePlanDetailViewModel } from '@/view-models/use-plan-detail-view-model';
@@ -20,12 +22,15 @@ export default function PlanDetailScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
   const { plan, isLoading, refresh } = usePlanDetailViewModel(Number(id));
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
   const handleActivatePlan = async () => {
     await planService.activatePlan(Number(id));
     Alert.alert('Plan Activated', `${plan?.name} is now your active workout plan.`);
     refresh();
   };
+
+  const selectedWeek = plan?.weeks?.[selectedWeekIndex] as PlanWeekWithDays | undefined;
 
   return (
     <ThemedView style={styles.container}>
@@ -93,7 +98,7 @@ export default function PlanDetailScreen() {
               {plan.status === 'active' && (
                 <View style={[styles.typeBadge, { backgroundColor: theme.tint + '15' }]}>
                   <ThemedText style={[styles.typeText, { color: theme.tint }]}>
-                    ACTIVE
+                    ACTIVE WEEK {plan.currentWeek}
                   </ThemedText>
                 </View>
               )}
@@ -104,12 +109,41 @@ export default function PlanDetailScreen() {
               </View>
             </View>
             <ThemedText style={styles.createdAt}>
-              Created on {new Date(plan.createdAt).toLocaleDateString()}
+              Created {new Date(plan.createdAt).toLocaleDateString()}
             </ThemedText>
           </View>
 
+          {/* Week Selector */}
+          {plan.weeks && plan.weeks.length > 1 && (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              style={styles.weekSelector}
+              contentContainerStyle={styles.weekSelectorContent}
+            >
+              {plan.weeks.map((week, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => setSelectedWeekIndex(index)}
+                  style={[
+                    styles.weekTab,
+                    selectedWeekIndex === index && { backgroundColor: theme.tint, borderColor: theme.tint },
+                    selectedWeekIndex !== index && { backgroundColor: theme.card, borderColor: theme.border }
+                  ]}
+                >
+                  <ThemedText style={[
+                     styles.weekTabText,
+                     selectedWeekIndex === index && { color: '#FFFFFF' }
+                  ]}>
+                    WEEK {week.weekNumber}
+                  </ThemedText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
           <View style={styles.daysList}>
-            {plan.days?.sort((a, b) => a.dayOfWeek - b.dayOfWeek).map((day) => (
+            {selectedWeek?.days?.sort((a: PlanDay, b: PlanDay) => a.dayOfWeek - b.dayOfWeek).map((day) => (
               <TouchableOpacity 
                 key={day.id} 
                 activeOpacity={day.isRestDay ? 1 : 0.7}
@@ -145,7 +179,7 @@ export default function PlanDetailScreen() {
                   )}
                 </View>
 
-                {!day.isRestDay && day.exercises?.length > 0 && (
+                {!day.isRestDay && day.exercises && day.exercises.length > 0 && (
                   <View style={styles.exercisePreview}>
                     {day.exercises.sort((a, b) => a.exerciseOrder - b.exerciseOrder).map((ex) => (
                       <View key={ex.id} style={styles.exerciseRow}>
@@ -329,5 +363,24 @@ const styles = StyleSheet.create({
   backButton: {
     marginTop: 16,
     padding: 12,
+  },
+  weekSelector: {
+    marginBottom: 20,
+  },
+  weekSelectorContent: {
+    gap: 12,
+  },
+  weekTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  weekTabText: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });

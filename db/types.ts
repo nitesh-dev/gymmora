@@ -1,7 +1,8 @@
-import { exerciseContent, exerciseEquipment, exerciseMuscleGroups, exerciseMusclesWorked, exercises, exerciseVariations, planDayExercises, planDays, setLogs, workoutLogs, workoutPlans } from './schema';
+import { exerciseContent, exerciseEquipment, exerciseMuscleGroups, exerciseMusclesWorked, exercises, exerciseVariations, planDayExercises, planDays, planWeeks, setLogs, workoutLogs, workoutPlans } from './schema';
 
 export type Exercise = typeof exercises.$inferSelect;
 export type WorkoutPlan = typeof workoutPlans.$inferSelect;
+export type PlanWeek = typeof planWeeks.$inferSelect;
 export type PlanDay = typeof planDays.$inferSelect;
 export type PlanDayExercise = typeof planDayExercises.$inferSelect;
 export type WorkoutLog = typeof workoutLogs.$inferSelect;
@@ -16,10 +17,12 @@ export type PlanDayWithExercises = PlanDay & {
   exercises: (PlanDayExercise & {
     exercise: Exercise;
   })[];
-  plan: WorkoutPlan;
+  week: PlanWeek & {
+    plan: WorkoutPlan;
+  };
 };
 
-export type WorkoutPlanWithDays = WorkoutPlan & {
+export type PlanWeekWithDays = PlanWeek & {
   days: (PlanDay & {
     exercises: (PlanDayExercise & {
       exercise: Exercise;
@@ -27,9 +30,21 @@ export type WorkoutPlanWithDays = WorkoutPlan & {
   })[];
 };
 
+export type WorkoutPlanWithWeeks = WorkoutPlan & {
+  weeks: PlanWeekWithDays[];
+};
+
+// Keeping this for backward compatibility or simple usage if needed, 
+// but it should probably be replaced by WorkoutPlanWithWeeks
+export type WorkoutPlanWithDays = WorkoutPlan & {
+  weeks: PlanWeekWithDays[];
+};
+
 export type WorkoutLogWithRelations = WorkoutLog & {
   planDay: (PlanDay & {
-    plan: WorkoutPlan;
+    week: PlanWeek & {
+      plan: WorkoutPlan;
+    };
   }) | null;
   sets: (SetLog & {
     exercise: Exercise;

@@ -80,14 +80,24 @@ export const workoutPlans = sqliteTable('workout_plans', {
   name: text('name').notNull(),
   type: text('type', { enum: ['SYSTEM', 'CUSTOM'] }).notNull(),
   status: text('status', { enum: ['active', 'inactive'] }).notNull().default('inactive'),
+  currentWeek: integer('current_week').notNull().default(1),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
-export const planDays = sqliteTable('plan_days', {
+export const planWeeks = sqliteTable('plan_weeks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   planId: integer('plan_id')
     .notNull()
     .references(() => workoutPlans.id, { onDelete: 'cascade' }),
+  weekNumber: integer('week_number').notNull(),
+  label: text('label'),
+});
+
+export const planDays = sqliteTable('plan_days', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  weekId: integer('week_id')
+    .notNull()
+    .references(() => planWeeks.id, { onDelete: 'cascade' }),
   dayOfWeek: integer('day_of_week').notNull(), // 0=Sun ... 6=Sat
   dayLabel: text('day_label'), // Push / Pull / Legs etc.
   isRestDay: integer('is_rest_day', { mode: 'boolean' }).notNull().default(false),
@@ -193,13 +203,21 @@ export const exerciseVariationsRelations = relations(
 );
 
 export const workoutPlansRelations = relations(workoutPlans, ({ many }) => ({
+  weeks: many(planWeeks),
+}));
+
+export const planWeeksRelations = relations(planWeeks, ({ one, many }) => ({
+  plan: one(workoutPlans, {
+    fields: [planWeeks.planId],
+    references: [workoutPlans.id],
+  }),
   days: many(planDays),
 }));
 
 export const planDaysRelations = relations(planDays, ({ one, many }) => ({
-  plan: one(workoutPlans, {
-    fields: [planDays.planId],
-    references: [workoutPlans.id],
+  week: one(planWeeks, {
+    fields: [planDays.weekId],
+    references: [planWeeks.id],
   }),
   exercises: many(planDayExercises),
   logs: many(workoutLogs),

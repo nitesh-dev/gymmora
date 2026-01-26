@@ -25,7 +25,7 @@ export function useHistoryViewModel() {
       
       // Group by month
       const grouped: Record<string, HistorySession[]> = {};
-      logs.forEach((log) => {
+      logs.forEach((log: WorkoutLogWithRelations) => {
         const date = new Date(log.date);
         const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
         if (!grouped[monthYear]) {
@@ -33,7 +33,7 @@ export function useHistoryViewModel() {
         }
         
         // Calculate volume for the session and unique exercises
-        const volume = log.sets.reduce((acc, set) => {
+        const volume = log.sets.reduce((acc: number, set) => {
           const weight = parseFloat(set.weight) || 0;
           return acc + (weight * set.repsDone);
         }, 0);
@@ -51,7 +51,7 @@ export function useHistoryViewModel() {
           totalSets: log.sets.length,
           totalVolume: volume,
           exercisesPerformed: Array.from(exercisesMap.values()),
-        } as HistorySession);
+        });
       });
 
       const sections = Object.entries(grouped).map(([title, data]) => ({

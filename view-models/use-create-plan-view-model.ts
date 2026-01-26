@@ -5,45 +5,58 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
+export interface ExerciseState {
+  exerciseId: number;
+  title: string;
+  sets: number;
+  reps: number;
+  order: number;
+}
+
 export interface PlanDayState {
   dayOfWeek: number;
   dayLabel: string;
   isRestDay: boolean;
-  exercises: {
-    exerciseId: number;
-    title: string;
-    sets: number;
-    reps: number;
-    order: number;
-  }[];
+  exercises: ExerciseState[];
+}
+
+export interface PlanWeekState {
+  weekNumber: number;
+  label: string;
+  days: PlanDayState[];
 }
 
 export function useCreatePlanViewModel(planId?: number) {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [days, setDays] = useState<PlanDayState[]>(
-    Array.from({ length: 7 }, (_, i) => ({
-      dayOfWeek: i,
-      dayLabel: '',
-      isRestDay: i === 0 || i === 6, // Default Sat/Sun as rest days
-      exercises: [],
-    }))
-  );
+  const [weeks, setWeeks] = useState<PlanWeekState[]>([
+    {
+      weekNumber: 1,
+      label: 'Week 1',
+      days: Array.from({ length: 7 }, (_, i) => ({
+        dayOfWeek: i,
+        dayLabel: '',
+        isRestDay: i === 0 || i === 6,
+        exercises: [],
+      }))
+    }
+  ]);
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!planId);
   
   // Use refs to avoid unstable function identities for the header
   const nameRef = useRef(name);
-  const daysRef = useRef(days);
+  const weeksRef = useRef(weeks);
   
   useEffect(() => {
     nameRef.current = name;
   }, [name]);
   
   useEffect(() => {
-    daysRef.current = days;
-  }, [days]);
+    weeksRef.current = weeks;
+  }, [weeks]);
 
   // Load existing plan if planId is provided
   useEffect(() => {
@@ -53,32 +66,34 @@ export function useCreatePlanViewModel(planId?: number) {
           const plan = await planService.getPlanById(planId);
           if (plan) {
             setName(plan.name);
-            
-            // Map days from DB to state
-            const stateDays: PlanDayState[] = Array.from({ length: 7 }, (_, i) => {
-              const dbDay = plan.days.find((d) => d.dayOfWeek === i);
-              if (dbDay) {
+            const stateWeeks: PlanWeekState[] = plan.weeks.map((w) => ({
+              weekNumber: w.weekNumber,
+              label: w.label || `Week ${w.weekNumber}`,
+              days: Array.from({ length: 7 }, (_, i) => {
+                const dbDay = w.days.find((d) => d.dayOfWeek === i);
+                if (dbDay) {
+                  return {
+                    dayOfWeek: i,
+                    dayLabel: dbDay.dayLabel || '',
+                    isRestDay: dbDay.isRestDay,
+                    exercises: dbDay.exercises.map((de) => ({
+                      exerciseId: de.exerciseId,
+                      title: de.exercise?.title || 'Unknown',
+                      sets: de.sets,
+                      reps: de.reps,
+                      order: de.exerciseOrder,
+                    })).sort((a, b) => a.order - b.order)
+                  };
+                }
                 return {
                   dayOfWeek: i,
-                  dayLabel: dbDay.dayLabel || '',
-                  isRestDay: dbDay.isRestDay,
-                  exercises: dbDay.exercises.map((de) => ({
-                    exerciseId: de.exerciseId,
-                    title: de.exercise?.title || 'Unknown',
-                    sets: de.sets,
-                    reps: de.reps,
-                    order: de.exerciseOrder,
-                  })).sort((a, b) => a.order - b.order)
+                  dayLabel: '',
+                  isRestDay: true,
+                  exercises: []
                 };
-              }
-              return {
-                dayOfWeek: i,
-                dayLabel: '',
-                isRestDay: true,
-                exercises: []
-              };
-            });
-            setDays(stateDays);
+              })
+            }));
+            setWeeks(stateWeeks);
           }
         } catch (error) {
           console.error('Failed to load plan for editing:', error);
@@ -143,77 +158,149 @@ export function useCreatePlanViewModel(planId?: number) {
     handleSearchExercises(exerciseSearch, muscle);
   };
 
+  const addWeek = () => {
+    setWeeks(prev => [
+      ...prev,
+      {
+        weekNumber: prev.length + 1,
+        label: `Week ${prev.length + 1}`,
+        days: Array.from({ length: 7 }, (_, i) => ({
+          dayOfWeek: i,
+          dayLabel: '',
+          isRestDay: i === 0 || i === 6,
+          exercises: [],
+        }))
+      }
+    ]);
+    setCurrentWeekIndex(weeks.length);
+  };
+
+  const removeWeek = (index: number) => {
+    if (weeks.length <= 1) return;
+    setWeeks(prev => {
+      const newWeeks = prev.filter((_, i) => i !== index);
+      return newWeeks.map((w, i) => ({ ...w, weekNumber: i + 1 }));
+    });
+    if (currentWeekIndex >= index && currentWeekIndex > 0) {
+      setCurrentWeekIndex(currentWeekIndex - 1);
+    }
+  };
+
+  const duplicateWeek = (index: number) => {
+    setWeeks(prev => {
+      const weekToCopy = prev[index];
+      const newWeeks = [...prev];
+      newWeeks.splice(index + 1, 0, {
+        ...JSON.parse(JSON.stringify(weekToCopy)), // Deep copy
+        weekNumber: index + 2,
+        label: `${weekToCopy.label} (Copy)`
+      });
+      return newWeeks.map((w, i) => ({ ...w, weekNumber: i + 1 }));
+    });
+    setCurrentWeekIndex(index + 1);
+  };
+
   const toggleRestDay = (dayIndex: number) => {
-    setDays(prev => prev.map((day, i) =>
-      i === dayIndex ? { ...day, isRestDay: !day.isRestDay } : day
+    setWeeks(prev => prev.map((week, wIdx) => 
+      wIdx === currentWeekIndex 
+        ? {
+            ...week,
+            days: week.days.map((day, dIdx) => 
+              dIdx === dayIndex ? { ...day, isRestDay: !day.isRestDay } : day
+            )
+          }
+        : week
     ));
   };
 
   const updateDayLabel = (dayIndex: number, label: string) => {
-    setDays(prev => prev.map((day, i) =>
-      i === dayIndex ? { ...day, dayLabel: label } : day
+    setWeeks(prev => prev.map((week, wIdx) => 
+      wIdx === currentWeekIndex 
+        ? {
+            ...week,
+            days: week.days.map((day, dIdx) => 
+              dIdx === dayIndex ? { ...day, dayLabel: label } : day
+            )
+          }
+        : week
     ));
   };
 
   const addExerciseToDay = (dayIndex: number, exercise: Exercise) => {
-    setDays(prev => prev.map((day, i) => {
-      if (i === dayIndex) {
-        const exists = day.exercises.some(ex => ex.exerciseId === exercise.id);
-        if (exists) {
-          return {
-            ...day,
-            exercises: day.exercises.filter(ex => ex.exerciseId !== exercise.id)
-          };
-        }
+    setWeeks(prev => prev.map((week, wIdx) => {
+      if (wIdx === currentWeekIndex) {
         return {
-          ...day,
-          exercises: [
-            ...day.exercises,
-            {
-              exerciseId: exercise.id,
-              title: exercise.title,
-              sets: 3,
-              reps: 10,
-              order: day.exercises.length,
+          ...week,
+          days: week.days.map((day, dIdx) => {
+            if (dIdx === dayIndex) {
+              const exists = day.exercises.some(ex => ex.exerciseId === exercise.id);
+              if (exists) {
+                return {
+                  ...day,
+                  exercises: day.exercises.filter(ex => ex.exerciseId !== exercise.id)
+                };
+              }
+              return {
+                ...day,
+                exercises: [
+                  ...day.exercises,
+                  {
+                    exerciseId: exercise.id,
+                    title: exercise.title,
+                    sets: 3,
+                    reps: 10,
+                    order: day.exercises.length,
+                  }
+                ]
+              };
             }
-          ]
+            return day;
+          })
         };
       }
-      return day;
+      return week;
     }));
   };
 
   const removeExerciseFromDay = (dayIndex: number, exerciseId: number) => {
-    setDays(prev => prev.map((day, i) => {
-      if (i === dayIndex) {
-        return {
-          ...day,
-          exercises: day.exercises.filter(ex => ex.exerciseId !== exerciseId)
-        };
-      }
-      return day;
-    }));
+    setWeeks(prev => prev.map((week, wIdx) => 
+      wIdx === currentWeekIndex 
+        ? {
+            ...week,
+            days: week.days.map((day, dIdx) => 
+              dIdx === dayIndex 
+                ? { ...day, exercises: day.exercises.filter(ex => ex.exerciseId !== exerciseId) } 
+                : day
+            )
+          }
+        : week
+    ));
   };
 
   const updateExerciseSetsReps = (dayIndex: number, exerciseId: number, sets: number, reps: number) => {
-    setDays(prev => prev.map((day, i) => {
-      if (i === dayIndex) {
-        return {
-          ...day,
-          exercises: day.exercises.map(ex =>
-            ex.exerciseId === exerciseId ? { ...ex, sets, reps } : ex
-          )
-        };
-      }
-      return day;
-    }));
+    setWeeks(prev => prev.map((week, wIdx) => 
+      wIdx === currentWeekIndex 
+        ? {
+            ...week,
+            days: week.days.map((day, dIdx) => 
+              dIdx === dayIndex 
+                ? {
+                    ...day,
+                    exercises: day.exercises.map(ex =>
+                      ex.exerciseId === exerciseId ? { ...ex, sets, reps } : ex
+                    )
+                  }
+                : day
+            )
+          }
+        : week
+    ));
   };
 
   const savePlan = useCallback(async () => {
     const currentName = nameRef.current;
-    const currentDays = daysRef.current;
+    const currentWeeks = weeksRef.current;
 
-    console.log('Attempting to save plan with name:', currentName);
     if (!currentName.trim()) {
       Alert.alert('Error', 'Please enter a plan name');
       return;
@@ -221,42 +308,31 @@ export function useCreatePlanViewModel(planId?: number) {
 
     setIsSaving(true);
     try {
+      const planData = {
+        name: currentName,
+        type: 'CUSTOM' as const,
+        weeks: currentWeeks.map((week: PlanWeekState) => ({
+          weekNumber: week.weekNumber,
+          label: week.label,
+          days: week.days.map((day: PlanDayState) => ({
+            dayOfWeek: day.dayOfWeek,
+            dayLabel: day.dayLabel,
+            isRestDay: day.isRestDay,
+            exercises: day.exercises.map((ex: ExerciseState) => ({
+              exerciseId: ex.exerciseId,
+              sets: ex.sets,
+              reps: ex.reps,
+              order: ex.order,
+            })),
+          })),
+        })),
+      };
+
       if (planId) {
-        console.log('Updating plan:', planId);
-        await planService.updatePlan(planId, {
-          name: currentName,
-          type: 'CUSTOM',
-          days: currentDays.map(day => ({
-            dayOfWeek: day.dayOfWeek,
-            dayLabel: day.dayLabel,
-            isRestDay: day.isRestDay,
-            exercises: day.exercises.map(ex => ({
-              exerciseId: ex.exerciseId,
-              sets: ex.sets,
-              reps: ex.reps,
-              order: ex.order,
-            })),
-          })),
-        });
+        await planService.updatePlan(planId, planData);
       } else {
-        console.log('Saving plan:', currentName);
-        await planService.createPlan({
-          name: currentName,
-          type: 'CUSTOM',
-          days: currentDays.map(day => ({
-            dayOfWeek: day.dayOfWeek,
-            dayLabel: day.dayLabel,
-            isRestDay: day.isRestDay,
-            exercises: day.exercises.map(ex => ({
-              exerciseId: ex.exerciseId,
-              sets: ex.sets,
-              reps: ex.reps,
-              order: ex.order,
-            })),
-          })),
-        });
+        await planService.createPlan(planData);
       }
-      console.log('Plan saved successfully');
       router.back();
     } catch (error) {
       console.error('Failed to save plan:', error);
@@ -264,12 +340,18 @@ export function useCreatePlanViewModel(planId?: number) {
     } finally {
       setIsSaving(false);
     }
-  }, [router, planId]); // Added planId to dependencies
+  }, [router, planId]);
 
   return {
     name,
     setName,
-    days,
+    weeks,
+    currentWeekIndex,
+    setCurrentWeekIndex,
+    addWeek,
+    removeWeek,
+    duplicateWeek,
+    days: weeks[currentWeekIndex]?.days || [],
     toggleRestDay,
     updateDayLabel,
     addExerciseToDay,
@@ -277,8 +359,7 @@ export function useCreatePlanViewModel(planId?: number) {
     updateExerciseSetsReps,
     savePlan,
     isSaving,
-    isLoading, // Export isLoading
-    // Picker exports
+    isLoading,
     exerciseSearch,
     searchResults,
     isSearching,
