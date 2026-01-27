@@ -36,6 +36,13 @@
       "when": 1769448155758,
       "tag": "0004_handy_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1769503751044,
+      "tag": "0005_flippant_killmonger",
+      "breakpoints": true
     }
   ]
 }

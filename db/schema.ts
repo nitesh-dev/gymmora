@@ -1,18 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-});
 
-export const activities = sqliteTable('activities', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').references(() => users.id),
-  type: text('type').notNull(),
-  timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
-});
 
 export const exercises = sqliteTable('exercises', {
   id: integer('id').primaryKey(),
