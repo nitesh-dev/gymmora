@@ -1,3 +1,4 @@
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Href, useRouter } from 'expo-router';
@@ -19,7 +20,7 @@ export default function PlansScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const theme = Colors[colorScheme];
-  const { plans, isLoading, refreshPlans, importPlans, exportAllPlans, getTemplate } = usePlansViewModel();
+  const { plans, isLoading, refreshPlans, importPlans, exportAllPlans, getTemplate, exportExerciseList } = usePlansViewModel();
 
   const handleImport = async () => {
     try {
@@ -74,16 +75,60 @@ export default function PlansScreen() {
     }
   };
 
+  const handleDownloadExerciseList = async () => {
+    try {
+      const jsonContent = await exportExerciseList();
+      const fileName = 'gymmora_exercises_reference.json';
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(fileUri, jsonContent);
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Download Exercise Reference List',
+        UTI: 'public.json',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to download exercise list');
+    }
+  };
+
+  const { showActionSheetWithOptions } = useActionSheet();
+
   const showManagementMenu = () => {
-    Alert.alert(
-      'Manage Plans',
-      'Select an action',
-      [
-        { text: 'Import Plans', onPress: handleImport },
-        { text: 'Export All Custom Plans', onPress: handleExportAll },
-        { text: 'Download Template', onPress: handleDownloadTemplate },
-        { text: 'Cancel', style: 'cancel' },
-      ]
+    const options = [
+      'Import Plans', 
+      'Export All Custom Plans', 
+      'Download Template', 
+      'Download Exercise List (Reference)', 
+      'Cancel'
+    ];
+    const cancelButtonIndex = 4;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        title: 'Manage Plans',
+        containerStyle: { backgroundColor: theme.card },
+        textStyle: { color: theme.text },
+        titleTextStyle: { color: theme.text, fontWeight: 'bold' },
+      },
+      (selectedIndex?: number) => {
+        switch (selectedIndex) {
+          case 0:
+            handleImport();
+            break;
+          case 1:
+            handleExportAll();
+            break;
+          case 2:
+            handleDownloadTemplate();
+            break;
+          case 3:
+            handleDownloadExerciseList();
+            break;
+        }
+      }
     );
   };
 

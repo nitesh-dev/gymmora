@@ -100,5 +100,30 @@ export const ExerciseService = {
       overview: 'This is a test exercise added to verify DB functionality.',
       gifUrl: 'https://via.placeholder.com/150',
     });
-  }
+  },
+
+  /**
+   * Fetches all exercises with only ID and title for export/reference
+   */
+  async getAllExercisesMinimal() {
+    try {
+      const db = await getDb();
+      if (!db) return [];
+
+      const results = await db.query.exercises.findMany({
+        columns: {
+          id: true,
+          title: true,
+        },
+      });
+
+      return results.map(ex => ({
+        id: ex.id,
+        name: ex.title,
+      }));
+    } catch (error) {
+      console.error('getAllExercisesMinimal failed:', error);
+      return [];
+    }
+  },
 };

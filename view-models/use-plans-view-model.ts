@@ -1,4 +1,5 @@
 import { WorkoutPlanWithDays } from '@/db/types';
+import { ExerciseService } from '@/services/exercise-service';
 import { planService } from '@/services/plan-service';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -53,6 +54,11 @@ export function usePlansViewModel() {
     return planService.getPlanTemplate();
   };
 
+  const exportExerciseList = async () => {
+    const exercises = await ExerciseService.getAllExercisesMinimal();
+    return JSON.stringify(exercises, null, 2);
+  };
+
   return {
     plans,
     isLoading,
@@ -61,5 +67,6 @@ export function usePlansViewModel() {
     importPlans,
     exportAllPlans,
     getTemplate,
+    exportExerciseList,
   };
 }
