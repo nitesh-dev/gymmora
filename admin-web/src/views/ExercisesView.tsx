@@ -15,7 +15,7 @@ import {
     Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconDatabaseImport, IconEdit, IconExternalLink, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconDatabaseImport, IconEdit, IconExternalLink, IconEye, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import type { SortingState } from '@tanstack/react-table';
 import {
     createColumnHelper,
@@ -28,6 +28,7 @@ import {
 import { useState } from 'react';
 import type { Exercise } from '../models/exercise';
 import { useExercisesViewModel } from '../view-models/use-exercises-view-model';
+import { ExerciseDetailModal } from './ExerciseDetailModal';
 
 const columnHelper = createColumnHelper<Exercise>();
 
@@ -38,7 +39,10 @@ export function ExercisesView() {
   
   const [opened, { open, close }] = useDisclosure(false);
   const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
+  const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
+  
   const [editingExercise, setEditingExercise] = useState<Partial<Exercise> | null>(null);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [jsonInput, setJsonInput] = useState('');
 
   const [formData, setFormData] = useState<Partial<Exercise>>({
@@ -53,6 +57,11 @@ export function ExercisesView() {
     setEditingExercise(exercise);
     setFormData(exercise);
     open();
+  };
+
+  const handleView = (id: string) => {
+    setSelectedExerciseId(id);
+    openDetail();
   };
 
   const handleAdd = () => {
@@ -114,6 +123,13 @@ export function ExercisesView() {
       id: 'actions',
       cell: (info) => (
         <Group gap="xs" justify="flex-end">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => handleView(info.row.original.id)}
+          >
+            <IconEye size={16} />
+          </ActionIcon>
           <ActionIcon
             variant="subtle"
             color="blue"
@@ -261,6 +277,12 @@ export function ExercisesView() {
           </Group>
         </Stack>
       </Modal>
+
+      <ExerciseDetailModal
+        opened={detailOpened}
+        onClose={closeDetail}
+        exerciseId={selectedExerciseId}
+      />
     </Box>
   );
 }

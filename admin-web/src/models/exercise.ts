@@ -17,6 +17,29 @@ export interface ExerciseContent {
   orderIndex: number;
 }
 
+export interface ExerciseMuscleWorked {
+  id: string;
+  exerciseId: string;
+  name: string;
+  percentage: number;
+}
+
+export interface ExerciseMuscleGroup {
+  id: string;
+  exerciseId: string;
+  name: string;
+}
+
+export interface ExerciseEquipment {
+  id: string;
+  exerciseId: string;
+  name: string;
+}
+
 export interface ExerciseWithContent extends Exercise {
   content: ExerciseContent[];
+  musclesWorked: ExerciseMuscleWorked[];
+  muscleGroups: ExerciseMuscleGroup[];
+  equipment: ExerciseEquipment[];
+  variations: Exercise[];
 }

@@ -20,7 +20,20 @@ export class ExerciseRepository {
         const musclesWorked = await db.select().from(exerciseMusclesWorked).where(eq(exerciseMusclesWorked.exerciseId, id));
         const muscleGroups = await db.select().from(exerciseMuscleGroups).where(eq(exerciseMuscleGroups.exerciseId, id));
         const equipment = await db.select().from(exerciseEquipment).where(eq(exerciseEquipment.exerciseId, id));
-        const variations = await db.select().from(exerciseVariations).where(eq(exerciseVariations.exerciseId, id));
+        
+        const variations = await db.select({
+            id: exercises.id,
+            title: exercises.title,
+            gifUrl: exercises.gifUrl,
+            url: exercises.url,
+            overview: exercises.overview,
+            musclesWorkedImg: exercises.musclesWorkedImg,
+            isDeleted: exercises.isDeleted,
+            updatedAt: exercises.updatedAt,
+        })
+        .from(exerciseVariations)
+        .innerJoin(exercises, eq(exerciseVariations.variationId, exercises.id))
+        .where(eq(exerciseVariations.exerciseId, id));
 
         return { ...exercise, content, musclesWorked, muscleGroups, equipment, variations };
     }

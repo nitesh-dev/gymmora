@@ -13,6 +13,14 @@ export function useExercisesViewModel() {
     queryFn: () => exerciseService.getAllExercises(),
   });
 
+  const useExerciseDetail = (id: string | null) => {
+    return useQuery({
+      queryKey: ['exercise', id],
+      queryFn: () => exerciseService.getExerciseById(id!),
+      enabled: !!id,
+    });
+  };
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => exerciseService.deleteExercise(id),
     onSuccess: () => {
@@ -98,6 +106,7 @@ export function useExercisesViewModel() {
     createExercise: createMutation.mutateAsync,
     updateExercise: updateMutation.mutateAsync,
     importExercises: importMutation.mutateAsync,
+    useExerciseDetail,
     isProcessing: deleteMutation.isPending || createMutation.isPending || updateMutation.isPending || importMutation.isPending,
   };
 }
