@@ -10,11 +10,12 @@ import {
     Stack,
     Table,
     Text,
+    Textarea,
     TextInput,
     Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconEdit, IconExternalLink, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconDatabaseImport, IconEdit, IconExternalLink, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import type { SortingState } from '@tanstack/react-table';
 import {
     createColumnHelper,
@@ -31,12 +32,14 @@ import { useExercisesViewModel } from '../view-models/use-exercises-view-model';
 const columnHelper = createColumnHelper<Exercise>();
 
 export function ExercisesView() {
-  const { exercises, isLoading, deleteExercise, createExercise, updateExercise, isProcessing } = useExercisesViewModel();
+  const { exercises, isLoading, deleteExercise, createExercise, updateExercise, importExercises, isProcessing } = useExercisesViewModel();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   
   const [opened, { open, close }] = useDisclosure(false);
+  const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
   const [editingExercise, setEditingExercise] = useState<Partial<Exercise> | null>(null);
+  const [jsonInput, setJsonInput] = useState('');
 
   const [formData, setFormData] = useState<Partial<Exercise>>({
     title: '',
@@ -65,6 +68,17 @@ export function ExercisesView() {
       await createExercise(formData);
     }
     close();
+  };
+
+  const handleImport = async () => {
+    try {
+      const data = JSON.parse(jsonInput);
+      await importExercises(Array.isArray(data) ? data : [data]);
+      setJsonInput('');
+      closeImport();
+    } catch (e) {
+      alert('Invalid JSON format');
+    }
   };
 
   const columns = [
@@ -146,6 +160,14 @@ export function ExercisesView() {
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
+          <Button 
+            variant="light" 
+            color="gray" 
+            leftSection={<IconDatabaseImport size={16} />} 
+            onClick={openImport}
+          >
+            Import JSON
+          </Button>
           <Button leftSection={<IconPlus size={16} />} onClick={handleAdd}>
             Add Exercise
           </Button>
@@ -205,20 +227,37 @@ export function ExercisesView() {
             onChange={(e) => setFormData({ ...formData, gifUrl: e.target.value })}
           />
           <TextInput
-            label="Muscles Worked Image URL"
+            label="Muscles Image"
+            placeholder="URL to muscles worked image"
             value={formData.musclesWorkedImg || ''}
             onChange={(e) => setFormData({ ...formData, musclesWorkedImg: e.target.value })}
           />
-          <TextInput
-            label="Overview"
-            value={formData.overview || ''}
-            onChange={(e) => setFormData({ ...formData, overview: e.target.value })}
+          <Button onClick={handleSubmit}>
+            {editingExercise ? 'Save Changes' : 'Create Exercise'}
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={importOpened}
+        onClose={closeImport}
+        title="Import Exercises from JSON"
+        size="xl"
+      >
+        <Stack>
+          <Text size="sm" c="dimmed">
+            Paste a JSON array of exercises. The format should match the sample provided.
+          </Text>
+          <Textarea
+            placeholder='[ { "title": "...", ... } ]'
+            minRows={15}
+            value={jsonInput}
+            onChange={(e) => setJsonInput(e.target.value)}
+            styles={{ input: { fontFamily: 'monospace', fontSize: '12px' } }}
           />
-          <Group justify="flex-end" mt="xl">
-            <Button variant="outline" onClick={close}>Cancel</Button>
-            <Button onClick={handleSubmit} loading={isProcessing}>
-              {editingExercise ? 'Update' : 'Create'}
-            </Button>
+          <Group justify="flex-end">
+            <Button variant="light" onClick={closeImport}>Cancel</Button>
+            <Button onClick={handleImport} disabled={!jsonInput.trim()}>Import Now</Button>
           </Group>
         </Stack>
       </Modal>

@@ -57,6 +57,25 @@ export function useExercisesViewModel() {
     },
   });
 
+  const importMutation = useMutation({
+    mutationFn: (data: any[]) => exerciseService.importExercises(data),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      notifications.show({
+        title: 'Import Successful',
+        message: `Successfully imported ${res.count} exercises`,
+        color: 'green',
+      });
+    },
+    onError: (err: any) => {
+      notifications.show({
+        title: 'Import Failed',
+        message: err.message || 'Could not import exercises',
+        color: 'red',
+      });
+    },
+  });
+
   const confirmDelete = (id: string, title: string) => {
     modals.openConfirmModal({
       title: 'Remove Exercise',
@@ -78,6 +97,7 @@ export function useExercisesViewModel() {
     deleteExercise: confirmDelete,
     createExercise: createMutation.mutateAsync,
     updateExercise: updateMutation.mutateAsync,
-    isProcessing: deleteMutation.isPending || createMutation.isPending || updateMutation.isPending,
+    importExercises: importMutation.mutateAsync,
+    isProcessing: deleteMutation.isPending || createMutation.isPending || updateMutation.isPending || importMutation.isPending,
   };
 }

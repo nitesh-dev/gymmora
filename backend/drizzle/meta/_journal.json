@@ -15,6 +15,20 @@
       "when": 1769600657069,
       "tag": "0001_cheerful_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769625789728,
+      "tag": "0002_faithful_ben_urich",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769626148952,
+      "tag": "0003_green_changeling",
+      "breakpoints": true
     }
   ]
 }

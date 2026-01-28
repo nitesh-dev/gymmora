@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const userRoleEnum = pgEnum('user_role', ['USER', 'ADMIN']);
 export const planTypeEnum = pgEnum('plan_type', ['SYSTEM', 'CUSTOM']);
@@ -36,6 +36,32 @@ export const exerciseContent = pgTable('exercise_content', {
   contentText: text('content_text').notNull(),
   orderIndex: integer('order_index').notNull(),
 });
+
+export const exerciseMusclesWorked = pgTable('exercise_muscles_worked', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  percentage: integer('percentage').notNull(),
+});
+
+export const exerciseMuscleGroups = pgTable('exercise_muscle_groups', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+});
+
+export const exerciseEquipment = pgTable('exercise_equipment', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+});
+
+export const exerciseVariations = pgTable('exercise_variations', {
+  exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+  variationId: uuid('variation_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.exerciseId, t.variationId] }),
+}));
 
 export const workoutPlans = pgTable('workout_plans', {
   id: uuid('id').defaultRandom().primaryKey(),

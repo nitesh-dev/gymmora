@@ -21,6 +21,10 @@ class ExerciseService {
   async deleteExercise(id: string) {
     return api.delete(`/exercises/${id}`);
   }
+
+  async importExercises(data: any[]) {
+    return api.post<{ count: number }>('/exercises/import', data);
+  }
 }
 
 export const exerciseService = new ExerciseService();
