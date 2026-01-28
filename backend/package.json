@@ -8,8 +8,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@hono/swagger-ui": "^0.5.3",
-    "@hono/zod-openapi": "^1.2.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.8.9",
