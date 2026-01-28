@@ -4,79 +4,40 @@ import {
     Button,
     Group,
     Image,
-    LoadingOverlay,
     Modal,
     Paper,
     Stack,
-    Table,
     Text,
     Textarea,
     TextInput,
     Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconDatabaseImport, IconEdit, IconExternalLink, IconEye, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
-import type { SortingState } from '@tanstack/react-table';
-import {
-    createColumnHelper,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from '@tanstack/react-table';
+import { IconDatabaseImport, IconEdit, IconExternalLink, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { DataTable } from '../components/DataTable';
 import type { Exercise } from '../models/exercise';
+import { formatDate } from '../utils/date';
 import { useExercisesViewModel } from '../view-models/use-exercises-view-model';
-import { ExerciseDetailModal } from './ExerciseDetailModal';
 
 const columnHelper = createColumnHelper<Exercise>();
 
 export function ExercisesView() {
-  const { exercises, isLoading, deleteExercise, createExercise, updateExercise, importExercises, isProcessing } = useExercisesViewModel();
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const navigate = useNavigate();
+  const { exercises, isLoading, deleteExercise, importExercises } = useExercisesViewModel();
   const [globalFilter, setGlobalFilter] = useState('');
   
-  const [opened, { open, close }] = useDisclosure(false);
   const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
-  const [detailOpened, { open: openDetail, close: closeDetail }] = useDisclosure(false);
-  
-  const [editingExercise, setEditingExercise] = useState<Partial<Exercise> | null>(null);
-  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [jsonInput, setJsonInput] = useState('');
 
-  const [formData, setFormData] = useState<Partial<Exercise>>({
-    title: '',
-    url: '',
-    overview: '',
-    gifUrl: '',
-    musclesWorkedImg: '',
-  });
-
-  const handleEdit = (exercise: Exercise) => {
-    setEditingExercise(exercise);
-    setFormData(exercise);
-    open();
-  };
-
-  const handleView = (id: string) => {
-    setSelectedExerciseId(id);
-    openDetail();
+  const handleEdit = (id: string) => {
+    navigate(`/exercises/${id}`);
   };
 
   const handleAdd = () => {
-    setEditingExercise(null);
-    setFormData({ title: '', url: '', overview: '', gifUrl: '', musclesWorkedImg: '' });
-    open();
-  };
-
-  const handleSubmit = async () => {
-    if (editingExercise?.id) {
-      await updateExercise({ id: editingExercise.id, data: formData });
-    } else {
-      await createExercise(formData);
-    }
-    close();
+    navigate('/exercises/new');
   };
 
   const handleImport = async () => {
@@ -117,7 +78,7 @@ export function ExercisesView() {
     }),
     columnHelper.accessor('updatedAt', {
       header: 'Last Updated',
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      cell: (info) => formatDate(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',
@@ -125,15 +86,8 @@ export function ExercisesView() {
         <Group gap="xs" justify="flex-end">
           <ActionIcon
             variant="subtle"
-            color="gray"
-            onClick={() => handleView(info.row.original.id)}
-          >
-            <IconEye size={16} />
-          </ActionIcon>
-          <ActionIcon
-            variant="subtle"
             color="blue"
-            onClick={() => handleEdit(info.row.original)}
+            onClick={() => handleEdit(info.row.original.id)}
           >
             <IconEdit size={16} />
           </ActionIcon>
@@ -149,140 +103,70 @@ export function ExercisesView() {
     }),
   ];
 
-  const table = useReactTable({
-    data: exercises,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-    },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
+  const filteredData = exercises.filter(ex => 
+    ex.title.toLowerCase().includes(globalFilter.toLowerCase())
+  );
 
   return (
-    <Box pos="relative">
-      <LoadingOverlay visible={isLoading || isProcessing} overlayProps={{ blur: 2 }} />
-      
-      <Group justify="space-between" mb="lg">
-        <Title order={2}>Exercise Library</Title>
+    <Stack gap="xl">
+      <Group justify="space-between">
+        <Box>
+            <Title order={2} fw={800} style={{ letterSpacing: '-0.5px' }}>Exercise Library</Title>
+            <Text c="dimmed" size="sm">Manage and organize exercise data, media, and metadata.</Text>
+        </Box>
         <Group>
-          <TextInput
+            <TextInput
             placeholder="Search exercises..."
             leftSection={<IconSearch size={16} />}
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-          />
-          <Button 
-            variant="light" 
-            color="gray" 
-            leftSection={<IconDatabaseImport size={16} />} 
-            onClick={openImport}
-          >
-            Import JSON
-          </Button>
-          <Button leftSection={<IconPlus size={16} />} onClick={handleAdd}>
-            Add Exercise
-          </Button>
+            />
+            <Button 
+                variant="light" 
+                leftSection={<IconDatabaseImport size={18} />}
+                onClick={openImport}
+            >
+                Import JSON
+            </Button>
+            <Button 
+                variant="filled" 
+                leftSection={<IconPlus size={18} />}
+                onClick={handleAdd}
+            >
+                New Exercise
+            </Button>
         </Group>
       </Group>
 
       <Paper withBorder radius="md">
-        <Table verticalSpacing="sm" highlightOnHover>
-          <Table.Thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <Table.Th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </Table.Th>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Thead>
-          <Table.Tbody>
-            {table.getRowModel().rows.map((row) => (
-              <Table.Tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Td>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <DataTable 
+          columns={columns} 
+          data={filteredData} 
+          loading={isLoading} 
+        />
       </Paper>
 
+      {/* Import Modal */}
       <Modal 
-        opened={opened} 
-        onClose={close} 
-        title={editingExercise ? 'Edit Exercise' : 'Add Exercise'}
+        opened={importOpened} 
+        onClose={closeImport} 
+        title="Import Exercises"
+        centered
         size="lg"
       >
-        <Stack gap="md">
-          <TextInput
-            label="Title"
-            required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        <Stack>
+          <Textarea
+            label="JSON Data"
+            placeholder='[{"title": "Pushup", ...}]'
+            minRows={10}
+            value={jsonInput}
+            onChange={(e) => setJsonInput(e.target.value)}
           />
-          <TextInput
-            label="Video URL (YouTube/Vimeo)"
-            value={formData.url || ''}
-            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          />
-          <TextInput
-            label="GIF URL"
-            value={formData.gifUrl || ''}
-            onChange={(e) => setFormData({ ...formData, gifUrl: e.target.value })}
-          />
-          <TextInput
-            label="Muscles Image"
-            placeholder="URL to muscles worked image"
-            value={formData.musclesWorkedImg || ''}
-            onChange={(e) => setFormData({ ...formData, musclesWorkedImg: e.target.value })}
-          />
-          <Button onClick={handleSubmit}>
-            {editingExercise ? 'Save Changes' : 'Create Exercise'}
+          <Button onClick={handleImport} fullWidth>
+            Import
           </Button>
         </Stack>
       </Modal>
-
-      <Modal
-        opened={importOpened}
-        onClose={closeImport}
-        title="Import Exercises from JSON"
-        size="xl"
-      >
-        <Stack>
-          <Text size="sm" c="dimmed">
-            Paste a JSON array of exercises. The format should match the sample provided.
-          </Text>
-          <Textarea
-            placeholder='[ { "title": "...", ... } ]'
-            minRows={15}
-            value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
-            styles={{ input: { fontFamily: 'monospace', fontSize: '12px' } }}
-          />
-          <Group justify="flex-end">
-            <Button variant="light" onClick={closeImport}>Cancel</Button>
-            <Button onClick={handleImport} disabled={!jsonInput.trim()}>Import Now</Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <ExerciseDetailModal
-        opened={detailOpened}
-        onClose={closeDetail}
-        exerciseId={selectedExerciseId}
-      />
-    </Box>
+    </Stack>
   );
 }

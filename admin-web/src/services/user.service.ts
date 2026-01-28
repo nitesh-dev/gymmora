@@ -15,7 +15,7 @@ class UserService {
   }
 
   async updateUserRole(id: string, role: 'USER' | 'ADMIN') {
-    return api.patch<User>(`/users/${id}/role`, { role });
+    return api.put<User>(`/users/${id}/role`, { role });
   }
 }
 

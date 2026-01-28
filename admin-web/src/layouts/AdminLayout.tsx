@@ -1,6 +1,32 @@
-import { AppShell, Avatar, Box, Burger, Divider, Group, NavLink, Paper, ScrollArea, Stack, Text, Title } from '@mantine/core';
+import {
+    ActionIcon,
+    AppShell,
+    Avatar,
+    Box,
+    Burger,
+    Divider,
+    Group,
+    NavLink,
+    Paper,
+    ScrollArea,
+    Stack,
+    Text,
+    Title,
+    useComputedColorScheme,
+    useMantineColorScheme
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconBarbell, IconBolt, IconClipboardList, IconLayoutDashboard, IconLogout, IconSettings, IconUsers } from '@tabler/icons-react';
+import {
+    IconBarbell,
+    IconBolt,
+    IconClipboardList,
+    IconLayoutDashboard,
+    IconLogout,
+    IconMoon,
+    IconSettings,
+    IconSun,
+    IconUsers
+} from '@tabler/icons-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthViewModel } from '../view-models/use-auth-view-model';
 
@@ -9,6 +35,8 @@ export function AdminLayout() {
   const { user, logout } = useAuthViewModel();
   const navigate = useNavigate();
   const location = useLocation();
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   const navItems = [
     { label: 'Overview', icon: IconLayoutDashboard, path: '/' },
@@ -26,15 +54,17 @@ export function AdminLayout() {
         collapsed: { mobile: !opened },
       }}
       padding="xl"
-      styles={{
-        main: { background: 'var(--mantine-color-gray-0)' }
-      }}
+      styles={(theme) => ({
+        main: { 
+          background: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] 
+        }
+      })}
     >
       <AppShell.Header 
-        bg="white" 
+        bg={computedColorScheme === 'dark' ? 'dark.7' : 'white'}
         p="md" 
         style={{ 
-          borderBottom: '1px solid var(--mantine-color-gray-2)', 
+          borderBottom: `1px solid ${computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}`, 
           display: 'flex', 
           alignItems: 'center' 
         }}
@@ -51,6 +81,19 @@ export function AdminLayout() {
           </Group>
           
           <Group>
+            <ActionIcon
+              onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+              variant="default"
+              size="lg"
+              aria-label="Toggle color scheme"
+            >
+              {computedColorScheme === 'light' ? (
+                <IconMoon size={20} stroke={1.5} />
+              ) : (
+                <IconSun size={20} stroke={1.5} />
+              )}
+            </ActionIcon>
+
             <Divider orientation="vertical" />
             <Group gap="sm" style={{ cursor: 'pointer' }}>
                <Stack gap={0} align="flex-end" visibleFrom="sm">

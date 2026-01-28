@@ -23,7 +23,7 @@ export function DataTable<T>({ columns, data, loading }: DataTableProps<T>) {
     <Box pos="relative">
       <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <Table verticalSpacing="sm" highlightOnHover>
-        <Table.Thead bg="gray.0">
+        <Table.Thead bg="var(--mantine-color-default-hover)">
           {table.getHeaderGroups().map((headerGroup) => (
             <Table.Tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (

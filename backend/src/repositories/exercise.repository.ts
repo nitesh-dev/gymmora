@@ -97,6 +97,52 @@ export class ExerciseRepository {
         return exercise;
     }
 
+    async updateFullExercise(id: string, data: {
+        exercise: Partial<typeof exercises.$inferInsert>,
+        content?: typeof exerciseContent.$inferInsert[],
+        musclesWorked?: typeof exerciseMusclesWorked.$inferInsert[],
+        muscleGroups?: typeof exerciseMuscleGroups.$inferInsert[],
+        equipment?: typeof exerciseEquipment.$inferInsert[],
+    }) {
+        return await db.transaction(async (tx) => {
+            if (data.exercise) {
+                await tx.update(exercises)
+                    .set({ ...data.exercise, updatedAt: new Date() })
+                    .where(eq(exercises.id, id));
+            }
+
+            if (data.content !== undefined) {
+                await tx.delete(exerciseContent).where(eq(exerciseContent.exerciseId, id));
+                if (data.content.length > 0) {
+                    await tx.insert(exerciseContent).values(data.content.map(c => ({ ...c, exerciseId: id })));
+                }
+            }
+
+            if (data.musclesWorked !== undefined) {
+                await tx.delete(exerciseMusclesWorked).where(eq(exerciseMusclesWorked.exerciseId, id));
+                if (data.musclesWorked.length > 0) {
+                    await tx.insert(exerciseMusclesWorked).values(data.musclesWorked.map(m => ({ ...m, exerciseId: id })));
+                }
+            }
+
+            if (data.muscleGroups !== undefined) {
+                await tx.delete(exerciseMuscleGroups).where(eq(exerciseMuscleGroups.exerciseId, id));
+                if (data.muscleGroups.length > 0) {
+                    await tx.insert(exerciseMuscleGroups).values(data.muscleGroups.map(m => ({ ...m, exerciseId: id })));
+                }
+            }
+
+            if (data.equipment !== undefined) {
+                await tx.delete(exerciseEquipment).where(eq(exerciseEquipment.exerciseId, id));
+                if (data.equipment.length > 0) {
+                    await tx.insert(exerciseEquipment).values(data.equipment.map(m => ({ ...m, exerciseId: id })));
+                }
+            }
+
+            return await this.getExerciseWithContent(id);
+        });
+    }
+
     async delete(id: string) {
         const [exercise] = await db.update(exercises)
             .set({ isDeleted: true, updatedAt: new Date() })

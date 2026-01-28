@@ -3,10 +3,12 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './layouts/AdminLayout';
 import { useAuthViewModel } from './view-models/use-auth-view-model';
 import { DashboardView } from './views/DashboardView';
+import { ExerciseStudioView } from './views/ExerciseStudioView';
 import { ExercisesView } from './views/ExercisesView';
 import { LoginView } from './views/LoginView';
 import { PlanStudioView } from './views/PlanStudioView';
 import { PlansView } from './views/PlansView';
+import { UserDetailView } from './views/UserDetailView';
 import { UsersView } from './views/UsersView';
 
 // Protection Wrapper
@@ -40,10 +42,17 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<DashboardView />} />
-          <Route path="users" element={<UsersView />} />
+          
           <Route path="exercises" element={<ExercisesView />} />
+          <Route path="exercises/new" element={<ExerciseStudioView />} />
+          <Route path="exercises/:id" element={<ExerciseStudioView />} />
+          
           <Route path="plans" element={<PlansView />} />
+          <Route path="plans/new" element={<PlanStudioView />} />
           <Route path="plans/:id" element={<PlanStudioView />} />
+          
+          <Route path="users" element={<UsersView />} />
+          <Route path="users/:id" element={<UserDetailView />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

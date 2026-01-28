@@ -27,4 +27,33 @@ userRoutes.get('/', authMiddleware, async (c) => {
   return Send.ok(c, users);
 });
 
+userRoutes.get('/:id', authMiddleware, async (c) => {
+  const role = c.get('userRole');
+  if (role !== 'ADMIN') return Send.forbidden(c);
+  
+  const id = c.req.param('id');
+  const user = await userService.getUserById(id);
+  if (!user) return Send.notFound(c, 'User not found');
+  return Send.ok(c, user);
+});
+
+userRoutes.put('/:id/role', authMiddleware, async (c) => {
+  const adminRole = c.get('userRole');
+  if (adminRole !== 'ADMIN') return Send.forbidden(c);
+
+  const id = c.req.param('id');
+  const { role } = await c.req.json();
+  const updated = await userService.updateRole(id, role);
+  return Send.ok(c, updated);
+});
+
+userRoutes.delete('/:id', authMiddleware, async (c) => {
+  const adminRole = c.get('userRole');
+  if (adminRole !== 'ADMIN') return Send.forbidden(c);
+
+  const id = c.req.param('id');
+  await userService.deleteUser(id);
+  return Send.ok(c, { message: 'User deleted' });
+});
+
 export { userRoutes };

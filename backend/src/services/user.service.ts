@@ -21,6 +21,15 @@ export class UserService {
       lastSyncAt: user.lastSyncAt?.toISOString() || null
     };
   }
+
+  async updateRole(id: string, role: string) {
+    const updated = await userRepository.updateRole(id, role as any);
+    return updated;
+  }
+
+  async deleteUser(id: string) {
+    await userRepository.delete(id);
+  }
 }
 
 export const userService = new UserService();

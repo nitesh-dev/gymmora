@@ -17,8 +17,8 @@ export function PlansView() {
       header: 'Plan Name',
       cell: (info) => (
         <Group gap="sm">
-          <Box bg="indigo.0" p={8} style={{ borderRadius: '8px' }}>
-             <IconClipboardList size={20} color="var(--mantine-color-indigo-6)" />
+          <Box bg="var(--mantine-color-indigo-light)" p={8} style={{ borderRadius: '8px' }}>
+             <IconClipboardList size={20} color="var(--mantine-color-indigo-light-color)" />
           </Box>
           <Box>
             <Text fw={600} size="sm">{info.getValue()}</Text>

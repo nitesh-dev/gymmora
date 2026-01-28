@@ -108,6 +108,15 @@ exerciseRoutes.post('/import', authMiddleware, adminMiddleware, async (c) => {
 exerciseRoutes.put('/:id', authMiddleware, adminMiddleware, async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
+  
+  // If it's a "full" update (from studio)
+  if (body.exercise || body.content) {
+      const exercise = await exerciseRepository.updateFullExercise(id, body);
+      if (!exercise) return Send.notFound(c, 'Exercise not found');
+      return Send.ok(c, exercise);
+  }
+
+  // Simple basic info update
   const parsed = ExerciseSchema.partial().safeParse(body);
   if (!parsed.success) return Send.error(c, parsed.error);
 

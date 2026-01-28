@@ -1,19 +1,29 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../db';
 import { userRoleEnum, users } from '../db/schema';
 
 export class UserRepository {
     async findAll() {
-        return await db.select().from(users);
+        return await db.select().from(users).where(eq(users.isDeleted, false));
     }
 
     async findById(id: string) {
-        const [user] = await db.select().from(users).where(eq(users.id, id));
+        const [user] = await db.select().from(users).where(
+            and(
+                eq(users.id, id),
+                eq(users.isDeleted, false)
+            )
+        );
         return user;
     }
 
     async findByEmail(email: string) {
-        const [user] = await db.select().from(users).where(eq(users.email, email));
+        const [user] = await db.select().from(users).where(
+            and(
+                eq(users.email, email),
+                eq(users.isDeleted, false)
+            )
+        );
         return user;
     }
 
@@ -28,6 +38,12 @@ export class UserRepository {
     async updateLastSync(id: string) {
         await db.update(users)
             .set({ lastSyncAt: new Date() })
+            .where(eq(users.id, id));
+    }
+
+    async delete(id: string) {
+        await db.update(users)
+            .set({ isDeleted: true, updatedAt: new Date() })
             .where(eq(users.id, id));
     }
 }

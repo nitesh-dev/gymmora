@@ -1,34 +1,18 @@
-import {
-    ActionIcon,
-    Badge,
-    Box,
-    Group,
-    LoadingOverlay,
-    Paper,
-    Table,
-    Text,
-    TextInput,
-    Title,
-} from '@mantine/core';
-import { IconSearch, IconTrash } from '@tabler/icons-react';
-import type { SortingState } from '@tanstack/react-table';
-import {
-    createColumnHelper,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from '@tanstack/react-table';
+import { ActionIcon, Badge, Box, Group, Paper, Stack, Text, TextInput, Title } from '@mantine/core';
+import { IconEye, IconSearch, IconTrash } from '@tabler/icons-react';
+import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { DataTable } from '../components/DataTable';
 import type { User } from '../models/user';
+import { formatDate } from '../utils/date';
 import { useUsersViewModel } from '../view-models/use-users-view-model';
 
 const columnHelper = createColumnHelper<User>();
 
 export function UsersView() {
+  const navigate = useNavigate();
   const { users, isLoading, deleteUser } = useUsersViewModel();
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
   const columns = [
@@ -49,12 +33,19 @@ export function UsersView() {
     }),
     columnHelper.accessor('createdAt', {
       header: 'Joined',
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      cell: (info) => formatDate(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',
       cell: (info) => (
         <Group gap="xs" justify="flex-end">
+          <ActionIcon
+            color="indigo"
+            variant="subtle"
+            onClick={() => navigate(`/users/${info.row.original.id}`)}
+          >
+            <IconEye size={16} />
+          </ActionIcon>
           <ActionIcon
             color="red"
             variant="subtle"
@@ -67,26 +58,18 @@ export function UsersView() {
     }),
   ];
 
-  const table = useReactTable({
-    data: users,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-    },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
+  const filteredData = users.filter(user => 
+    user.name?.toLowerCase().includes(globalFilter.toLowerCase()) || 
+    user.email.toLowerCase().includes(globalFilter.toLowerCase())
+  );
 
   return (
-    <Box pos="relative">
-      <LoadingOverlay visible={isLoading} overlayProps={{ blur: 2 }} />
-      
-      <Group justify="space-between" mb="lg">
-        <Title order={2}>User Management</Title>
+    <Stack gap="xl">
+      <Group justify="space-between">
+        <Box>
+            <Title order={2} fw={800} style={{ letterSpacing: '-0.5px' }}>User Registry</Title>
+            <Text c="dimmed" size="sm">Manage and monitor user access and activity.</Text>
+        </Box>
         <TextInput
           placeholder="Search users..."
           leftSection={<IconSearch size={16} />}
@@ -96,40 +79,12 @@ export function UsersView() {
       </Group>
 
       <Paper withBorder radius="md">
-        <Table verticalSpacing="sm" highlightOnHover>
-          <Table.Thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <Table.Th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </Table.Th>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Thead>
-          <Table.Tbody>
-            {table.getRowModel().rows.map((row) => (
-              <Table.Tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Td>
-                ))}
-              </Table.Tr>
-            ))}
-            {users.length === 0 && !isLoading && (
-              <Table.Tr>
-                <Table.Td colSpan={columns.length} ta="center" py="xl">
-                  <Text c="dimmed">No users found</Text>
-                </Table.Td>
-              </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+        <DataTable 
+          columns={columns} 
+          data={filteredData} 
+          loading={isLoading} 
+        />
       </Paper>
-    </Box>
+    </Stack>
   );
 }
