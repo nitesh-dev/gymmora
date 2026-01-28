@@ -1,11 +1,12 @@
 import { Context, Next } from 'hono';
 import { supabase } from '../config/supabase';
 import { userRepository } from '../repositories/user.repository';
+import { Send } from '../utils/response';
 
 export const authMiddleware = async (c: Context, next: Next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized: Missing or invalid token' }, 401);
+    return Send.unauthorized(c, 'Missing or invalid token');
   }
 
   const token = authHeader.split(' ')[1];
@@ -27,14 +28,14 @@ export const authMiddleware = async (c: Context, next: Next) => {
     
     await next();
   } catch (e: any) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    return Send.unauthorized(c);
   }
 };
 
 export const adminMiddleware = async (c: Context, next: Next) => {
   const role = c.get('userRole');
   if (role !== 'ADMIN') {
-    return c.json({ error: 'Forbidden: Admin access only' }, 403);
+    return Send.forbidden(c, 'Admin access only');
   }
   await next();
 };

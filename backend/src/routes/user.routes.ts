@@ -1,22 +1,30 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { userService } from '../services/user.service';
+import { Send } from '../utils/response';
 
-const userRoutes = new Hono();
+type Bindings = {};
+type Variables = {
+  userId: string;
+  userRole: string;
+};
+
+const userRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 userRoutes.get('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId' as any);
+  const userId = c.get('userId');
   const user = await userService.getUserById(userId);
-  return c.json(user);
+  if (!user) return Send.notFound(c, 'User not found');
+  return Send.ok(c, user);
 });
 
 userRoutes.get('/', authMiddleware, async (c) => {
-  const role = c.get('userRole' as any);
+  const role = c.get('userRole');
   if (role !== 'ADMIN') {
-    return c.json({ error: 'Forbidden' }, 403);
+    return Send.forbidden(c);
   }
   const users = await userService.getAllUsers();
-  return c.json(users);
+  return Send.ok(c, users);
 });
 
 export { userRoutes };
