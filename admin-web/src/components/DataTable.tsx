@@ -10,9 +10,10 @@ interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
   data: T[];
   loading?: boolean;
+  onRowClick?: (row: T) => void;
 }
 
-export function DataTable<T>({ columns, data, loading }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, loading, onRowClick }: DataTableProps<T>) {
   const table = useReactTable({
     data,
     columns,
@@ -42,7 +43,11 @@ export function DataTable<T>({ columns, data, loading }: DataTableProps<T>) {
         <Table.Tbody>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
-              <Table.Tr key={row.id}>
+              <Table.Tr 
+                key={row.id} 
+                onClick={() => onRowClick?.(row.original)}
+                style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <Table.Td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

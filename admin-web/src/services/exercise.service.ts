@@ -10,11 +10,11 @@ class ExerciseService {
     return api.get<ExerciseWithContent>(`/exercises/${id}`);
   }
 
-  async createExercise(data: Partial<Exercise>) {
+  async createExercise(data: any) {
     return api.post<Exercise>('/exercises', data);
   }
 
-  async updateExercise(id: string, data: Partial<Exercise>) {
+  async updateExercise(id: string, data: any) {
     return api.put<Exercise>(`/exercises/${id}`, data);
   }
 

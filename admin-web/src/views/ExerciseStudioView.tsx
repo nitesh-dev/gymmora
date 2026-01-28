@@ -18,12 +18,14 @@ import {
     TextInput,
     Title,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import {
     IconAlertTriangle,
     IconArrowLeft,
     IconBarbell,
     IconCheck,
     IconDeviceFloppy,
+    IconEdit,
     IconInfoCircle,
     IconList,
     IconMessageCircle,
@@ -36,6 +38,7 @@ import { useExerciseStudioViewModel } from '../view-models/use-exercise-studio-v
 export function ExerciseStudioView() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [isEditing, { toggle: toggleEdit }] = useDisclosure(id === 'new');
     const {
         exercise,
         isLoading,
@@ -64,22 +67,35 @@ export function ExerciseStudioView() {
                     </ActionIcon>
                     <Box>
                         <Title order={2} fw={800} style={{ letterSpacing: '-0.5px' }}>
-                            {id === 'new' ? 'Create Exercise' : 'Edit Exercise'}
+                            {id === 'new' ? 'Create Exercise' : isEditing ? 'Edit Exercise' : 'Exercise Details'}
                         </Title>
                         <Text c="dimmed" size="sm">Configure exercise details, visuals and relational content.</Text>
                     </Box>
                 </Group>
-                <Button
-                    leftSection={<IconDeviceFloppy size={18} />}
-                    color="indigo"
-                    loading={isSaving}
-                    onClick={async () => {
-                        await save();
-                        navigate('/exercises');
-                    }}
-                >
-                    Save Changes
-                </Button>
+                <Group>
+                    {id !== 'new' && (
+                        <Button
+                            variant="light"
+                            leftSection={isEditing ? <IconCheck size={18} /> : <IconEdit size={18} />}
+                            onClick={toggleEdit}
+                        >
+                            {isEditing ? 'View Mode' : 'Edit Details'}
+                        </Button>
+                    )}
+                    {(isEditing || id === 'new') && (
+                        <Button
+                            leftSection={<IconDeviceFloppy size={18} />}
+                            color="indigo"
+                            loading={isSaving}
+                            onClick={async () => {
+                                await save();
+                                navigate('/exercises');
+                            }}
+                        >
+                            Save Changes
+                        </Button>
+                    )}
+                </Group>
             </Group>
 
             <Grid gutter="xl">
@@ -98,11 +114,14 @@ export function ExerciseStudioView() {
                                             <IconBarbell size={40} color="var(--mantine-color-gray-3)" />
                                         )}
                                     </Paper>
-                                    <TextInput 
-                                        mt="xs"
-                                        placeholder="GIF URL"
+                                    <TextInput
+                                        label="GIF URL"
+                                        placeholder="https://..."
                                         value={exercise.gifUrl || ''}
                                         onChange={(e) => updateField('gifUrl', e.target.value)}
+                                        variant={isEditing ? 'default' : 'unstyled'}
+                                        readOnly={!isEditing}
+                                        styles={{ input: { fontWeight: isEditing ? 400 : 500, color: isEditing ? undefined : 'var(--mantine-color-dimmed)' } }}
                                     />
                                 </Box>
 
@@ -115,55 +134,66 @@ export function ExerciseStudioView() {
                                             <IconInfoCircle size={40} color="var(--mantine-color-gray-3)" />
                                         )}
                                     </Paper>
-                                    <TextInput 
-                                        mt="xs"
-                                        placeholder="Muscle Image URL"
+                                    <TextInput
+                                        label="Muscle Map Image"
+                                        placeholder="https://..."
                                         value={exercise.musclesWorkedImg || ''}
                                         onChange={(e) => updateField('musclesWorkedImg', e.target.value)}
+                                        variant={isEditing ? 'default' : 'unstyled'}
+                                        readOnly={!isEditing}
+                                        styles={{ input: { fontWeight: isEditing ? 400 : 500, color: isEditing ? undefined : 'var(--mantine-color-dimmed)' } }}
                                     />
                                 </Box>
                             </Stack>
                         </Paper>
 
                         <Paper withBorder p="xl" radius="md">
-                            <Title order={4} mb="md">Categorization</Title>
-                            <Stack gap="md">
-                                <Box>
-                                    <Text size="sm" fw={500} mb={5}>Muscle Groups</Text>
-                                    <TagsInput
-                                        placeholder="Type and press enter"
-                                        value={exercise.muscleGroups?.map((g: any) => g.name)}
-                                        onChange={(val: string[]) => {
-                                            const currentNames = exercise.muscleGroups.map((g: any) => g.name);
-                                            const added = val.filter(v => !currentNames.includes(v));
-                                            const removed = currentNames.filter(v => !val.includes(v));
-                                            
-                                            added.forEach((name: string) => addTag('muscleGroups', name));
-                                            removed.forEach((name: string) => {
-                                                const tag = exercise.muscleGroups.find((g: any) => g.name === name);
-                                                if (tag) removeTag('muscleGroups', tag.id);
-                                            });
-                                        }}
-                                    />
-                                </Box>
-                                <Box>
-                                    <Text size="sm" fw={500} mb={5}>Required Equipment</Text>
-                                    <TagsInput
-                                        placeholder="Type and press enter"
-                                        value={exercise.equipment?.map((e: any) => e.name)}
-                                        onChange={(val: string[]) => {
-                                            const currentNames = exercise.equipment.map((e: any) => e.name);
-                                            const added = val.filter(v => !currentNames.includes(v));
-                                            const removed = currentNames.filter(v => !val.includes(v));
-                                            
-                                            added.forEach((name: string) => addTag('equipment', name));
-                                            removed.forEach((name: string) => {
-                                                const tag = exercise.equipment.find((e: any) => e.name === name);
-                                                if (tag) removeTag('equipment', tag.id);
-                                            });
-                                        }}
-                                    />
-                                </Box>
+                            <Title order={4} mb="md">Exercise Info</Title>
+                            <Stack gap="sm">
+                                <TextInput
+                                    label="Title"
+                                    required
+                                    value={exercise.title}
+                                    onChange={(e) => updateField('title', e.target.value)}
+                                    variant={isEditing ? 'default' : 'unstyled'}
+                                    readOnly={!isEditing}
+                                    styles={{ input: { fontWeight: isEditing ? 400 : 700, fontSize: isEditing ? rem(14) : rem(18) } }}
+                                />
+                                <Textarea
+                                    label="Overview"
+                                    rows={4}
+                                    value={exercise.overview || ''}
+                                    onChange={(e) => updateField('overview', e.target.value)}
+                                    variant={isEditing ? 'default' : 'unstyled'}
+                                    readOnly={!isEditing}
+                                    autosize
+                                    styles={{ input: { fontWeight: isEditing ? 400 : 500, lineHeight: 1.6 } }}
+                                />
+                                <TextInput
+                                    label="Video URL"
+                                    placeholder="YouTube link"
+                                    value={exercise.url || ''}
+                                    onChange={(e) => updateField('url', e.target.value)}
+                                    variant={isEditing ? 'default' : 'unstyled'}
+                                    readOnly={!isEditing}
+                                    styles={{ input: { fontWeight: isEditing ? 400 : 500, color: 'var(--mantine-color-indigo-filled)' } }}
+                                />
+                                <TagsInput
+                                    label="Equipment Required"
+                                    placeholder="Add items"
+                                    value={exercise.equipment || []}
+                                    onChange={(val) => updateField('equipment', val)}
+                                    variant={isEditing ? 'default' : 'unstyled'}
+                                    readOnly={!isEditing}
+                                />
+                                <TagsInput
+                                    label="Muscle Groups"
+                                    placeholder="Add groups"
+                                    value={exercise.muscleGroups || []}
+                                    onChange={(val) => updateField('muscleGroups', val)}
+                                    variant={isEditing ? 'default' : 'unstyled'}
+                                    readOnly={!isEditing}
+                                />
                             </Stack>
                         </Paper>
                     </Stack>
@@ -173,34 +203,8 @@ export function ExerciseStudioView() {
                 <Grid.Col span={{ base: 12, md: 8 }}>
                     <Stack gap="lg">
                         <Paper withBorder p="xl" radius="md">
-                            <Title order={4} mb="md">General Information</Title>
-                            <Stack gap="md">
-                                <TextInput
-                                    label="Exercise Title"
-                                    placeholder="e.g. Incline Dumbbell Press"
-                                    value={exercise.title}
-                                    onChange={(e) => updateField('title', e.target.value)}
-                                    required
-                                    size="md"
-                                />
-                                <Textarea
-                                    label="Overview"
-                                    placeholder="Brief description of the exercise..."
-                                    minRows={3}
-                                    value={exercise.overview || ''}
-                                    onChange={(e) => updateField('overview', e.target.value)}
-                                />
-                                <TextInput
-                                    label="External Reference (URL)"
-                                    placeholder="e.g. Youtube or Website"
-                                    value={exercise.url || ''}
-                                    onChange={(e) => updateField('url', e.target.value)}
-                                />
-                            </Stack>
-                        </Paper>
-
-                        <Paper withBorder p="xl" radius="md">
-                           <Tabs defaultValue="steps" color="indigo">
+                            <Title order={4} mb="md">Execution Details</Title>
+                            <Tabs defaultValue="steps" color="indigo">
                                 <Tabs.List mb="md">
                                     <Tabs.Tab value="steps" leftSection={<IconList style={{ width: rem(16), height: rem(16) }} />}>Execution Steps</Tabs.Tab>
                                     <Tabs.Tab value="muscles" leftSection={<IconBarbell style={{ width: rem(16), height: rem(16) }} />}>Target Muscles</Tabs.Tab>
@@ -212,19 +216,22 @@ export function ExerciseStudioView() {
                                         {exercise.content?.filter((c: any) => c.contentType === 'step').sort((a: any, b: any) => a.orderIndex - b.orderIndex).map((step: any, idx: number) => (
                                             <Group key={step.id} align="flex-start" wrap="nowrap">
                                                 <Badge variant="filled" color="indigo" size="lg" radius="xl" w={32} h={32} p={0}>{idx + 1}</Badge>
-                                                <Textarea 
-                                                    style={{ flex: 1 }} 
-                                                    autosize 
-                                                    minRows={1} 
-                                                    value={step.contentText} 
+                                                <Textarea
+                                                    style={{ flex: 1 }}
+                                                    autosize
+                                                    minRows={1}
+                                                    value={step.contentText}
                                                     onChange={(e) => updateContent(step.id, e.target.value)}
+                                                    variant={isEditing ? 'default' : 'unstyled'}
+                                                    readOnly={!isEditing}
+                                                    styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
                                                 />
-                                                <ActionIcon color="red" variant="subtle" onClick={() => removeContent(step.id)}>
+                                                <ActionIcon color="red" variant="subtle" onClick={() => removeContent(step.id)} disabled={!isEditing}>
                                                     <IconTrash size={16} />
                                                 </ActionIcon>
                                             </Group>
                                         ))}
-                                        <Button variant="light" leftSection={<IconPlus size={16} />} onClick={() => addContent('step')}>Add Execution Step</Button>
+                                        <Button variant="light" leftSection={<IconPlus size={16} />} onClick={() => addContent('step')} disabled={!isEditing}>Add Execution Step</Button>
                                     </Stack>
                                 </Tabs.Panel>
 
@@ -238,27 +245,33 @@ export function ExerciseStudioView() {
                                         {exercise.musclesWorked?.map((m: any) => (
                                             <Grid key={m.id} align="center">
                                                 <Grid.Col span={6}>
-                                                    <TextInput 
-                                                        value={m.name} 
+                                                    <TextInput
+                                                        value={m.name}
                                                         onChange={(e) => updateMuscle(m.id, { name: e.target.value })}
                                                         placeholder="e.g. Chest (Lower)"
+                                                        variant={isEditing ? 'default' : 'unstyled'}
+                                                        readOnly={!isEditing}
+                                                        styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
                                                     />
                                                 </Grid.Col>
                                                 <Grid.Col span={4}>
-                                                    <NumberInput 
-                                                        value={m.percentage} 
+                                                    <NumberInput
+                                                        value={m.percentage}
                                                         onChange={(val) => updateMuscle(m.id, { percentage: val })}
                                                         min={0} max={100}
+                                                        variant={isEditing ? 'default' : 'unstyled'}
+                                                        readOnly={!isEditing}
+                                                        styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
                                                     />
                                                 </Grid.Col>
                                                 <Grid.Col span={2}>
-                                                    <ActionIcon color="red" variant="subtle" onClick={() => removeMuscle(m.id)}>
+                                                    <ActionIcon color="red" variant="subtle" onClick={() => removeMuscle(m.id)} disabled={!isEditing}>
                                                         <IconTrash size={16} />
                                                     </ActionIcon>
                                                 </Grid.Col>
                                             </Grid>
                                         ))}
-                                        <Button variant="light" leftSection={<IconPlus size={16} />} onClick={addMuscle}>Add Target Muscle</Button>
+                                        <Button variant="light" leftSection={<IconPlus size={16} />} onClick={addMuscle} disabled={!isEditing}>Add Target Muscle</Button>
                                     </Stack>
                                 </Tabs.Panel>
 
@@ -270,11 +283,18 @@ export function ExerciseStudioView() {
                                                 {exercise.content?.filter((c: any) => c.contentType === 'benefit').map((b: any) => (
                                                     <Group key={b.id} wrap="nowrap">
                                                         <Box bg="green.0" p={5} style={{ borderRadius: '50%' }}><IconCheck size={12} color="var(--mantine-color-green-7)" /></Box>
-                                                        <TextInput style={{ flex: 1 }} value={b.contentText} onChange={(e) => updateContent(b.id, e.target.value)} />
-                                                        <ActionIcon variant="subtle" color="red" onClick={() => removeContent(b.id)}><IconTrash size={14} /></ActionIcon>
+                                                        <TextInput 
+                                                            style={{ flex: 1 }} 
+                                                            value={b.contentText} 
+                                                            onChange={(e) => updateContent(b.id, e.target.value)} 
+                                                            variant={isEditing ? 'default' : 'unstyled'}
+                                                            readOnly={!isEditing}
+                                                            styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
+                                                        />
+                                                        <ActionIcon variant="subtle" color="red" onClick={() => removeContent(b.id)} disabled={!isEditing}><IconTrash size={14} /></ActionIcon>
                                                     </Group>
                                                 ))}
-                                                <Button size="xs" variant="subtle" color="green" leftSection={<IconPlus size={14} />} onClick={() => addContent('benefit')}>Add Benefit</Button>
+                                                <Button size="xs" variant="subtle" color="green" leftSection={<IconPlus size={14} />} onClick={() => addContent('benefit')} disabled={!isEditing}>Add Benefit</Button>
                                             </Stack>
                                         </Grid.Col>
                                         <Grid.Col span={6}>
@@ -283,11 +303,18 @@ export function ExerciseStudioView() {
                                                 {exercise.content?.filter((c: any) => c.contentType === 'mistake').map((m: any) => (
                                                     <Group key={m.id} wrap="nowrap">
                                                         <Box bg="red.0" p={5} style={{ borderRadius: '50%' }}><IconAlertTriangle size={12} color="var(--mantine-color-red-7)" /></Box>
-                                                        <TextInput style={{ flex: 1 }} value={m.contentText} onChange={(e) => updateContent(m.id, e.target.value)} />
-                                                        <ActionIcon variant="subtle" color="red" onClick={() => removeContent(m.id)}><IconTrash size={14} /></ActionIcon>
+                                                        <TextInput 
+                                                            style={{ flex: 1 }} 
+                                                            value={m.contentText} 
+                                                            onChange={(e) => updateContent(m.id, e.target.value)} 
+                                                            variant={isEditing ? 'default' : 'unstyled'}
+                                                            readOnly={!isEditing}
+                                                            styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
+                                                        />
+                                                        <ActionIcon variant="subtle" color="red" onClick={() => removeContent(m.id)} disabled={!isEditing}><IconTrash size={14} /></ActionIcon>
                                                     </Group>
                                                 ))}
-                                                <Button size="xs" variant="subtle" color="red" leftSection={<IconPlus size={14} />} onClick={() => addContent('mistake')}>Add Mistake</Button>
+                                                <Button size="xs" variant="subtle" color="red" leftSection={<IconPlus size={14} />} onClick={() => addContent('mistake')} disabled={!isEditing}>Add Mistake</Button>
                                             </Stack>
                                         </Grid.Col>
                                     </Grid>
@@ -297,14 +324,21 @@ export function ExerciseStudioView() {
                                         {exercise.content?.filter((c: any) => c.contentType === 'tip').map((t: any) => (
                                             <Group key={t.id} wrap="nowrap">
                                                 <Box bg="blue.0" p={5} style={{ borderRadius: '50%' }}><IconInfoCircle size={12} color="var(--mantine-color-blue-7)" /></Box>
-                                                <TextInput style={{ flex: 1 }} value={t.contentText} onChange={(e) => updateContent(t.id, e.target.value)} />
-                                                <ActionIcon variant="subtle" color="red" onClick={() => removeContent(t.id)}><IconTrash size={14} /></ActionIcon>
+                                                <TextInput 
+                                                    style={{ flex: 1 }} 
+                                                    value={t.contentText} 
+                                                    onChange={(e) => updateContent(t.id, e.target.value)} 
+                                                    variant={isEditing ? 'default' : 'unstyled'}
+                                                    readOnly={!isEditing}
+                                                    styles={{ input: { fontWeight: isEditing ? 400 : 500 } }}
+                                                />
+                                                <ActionIcon variant="subtle" color="red" onClick={() => removeContent(t.id)} disabled={!isEditing}><IconTrash size={14} /></ActionIcon>
                                             </Group>
                                         ))}
-                                        <Button size="xs" variant="subtle" color="blue" leftSection={<IconPlus size={14} />} onClick={() => addContent('tip')}>Add Pro Tip</Button>
+                                        <Button size="xs" variant="subtle" color="blue" leftSection={<IconPlus size={14} />} onClick={() => addContent('tip')} disabled={!isEditing}>Add Pro Tip</Button>
                                     </Stack>
                                 </Tabs.Panel>
-                           </Tabs>
+                            </Tabs>
                         </Paper>
                     </Stack>
                 </Grid.Col>

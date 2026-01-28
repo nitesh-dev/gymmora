@@ -13,7 +13,7 @@ import {
     Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconDatabaseImport, IconEdit, IconExternalLink, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconDatabaseImport, IconEye, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -65,16 +65,15 @@ export function ExercisesView() {
       ),
     }),
     columnHelper.accessor('title', {
-      header: 'Title',
-      cell: (info) => <Text fw={500}>{info.getValue()}</Text>,
-    }),
-    columnHelper.accessor('url', {
-      header: 'URL',
-      cell: (info) => info.getValue() ? (
-        <ActionIcon component="a" href={info.getValue()!} target="_blank" variant="subtle" size="sm">
-          <IconExternalLink size={16} />
-        </ActionIcon>
-      ) : null,
+      header: 'Exercise',
+      cell: (info) => (
+        <Box>
+          <Text fw={600} size="sm">{info.getValue()}</Text>
+          <Text size="xs" c="dimmed" lineClamp={1} style={{ maxWidth: '400px' }}>
+            {info.row.original.overview || 'No overview provided'}
+          </Text>
+        </Box>
+      ),
     }),
     columnHelper.accessor('updatedAt', {
       header: 'Last Updated',
@@ -86,15 +85,21 @@ export function ExercisesView() {
         <Group gap="xs" justify="flex-end">
           <ActionIcon
             variant="subtle"
-            color="blue"
-            onClick={() => handleEdit(info.row.original.id)}
+            color="indigo"
+            onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(info.row.original.id);
+            }}
           >
-            <IconEdit size={16} />
+            <IconEye size={16} />
           </ActionIcon>
           <ActionIcon
             variant="subtle"
             color="red"
-            onClick={() => deleteExercise(info.row.original.id, info.row.original.title)}
+            onClick={(e) => {
+                e.stopPropagation();
+                deleteExercise(info.row.original.id, info.row.original.title);
+            }}
           >
             <IconTrash size={16} />
           </ActionIcon>
@@ -143,6 +148,7 @@ export function ExercisesView() {
           columns={columns} 
           data={filteredData} 
           loading={isLoading} 
+          onRowClick={(row) => navigate(`/exercises/${row.id}`)}
         />
       </Paper>
 

@@ -36,6 +36,19 @@ exerciseRoutes.get('/:id', authMiddleware, async (c) => {
 // Create exercise (Admin only)
 exerciseRoutes.post('/', authMiddleware, adminMiddleware, async (c) => {
   const body = await c.req.json();
+  
+  // If it's a full create (from studio)
+  if (body.exercise) {
+      const results = await exerciseRepository.batchCreate([{
+          exercise: body.exercise,
+          content: body.content || [],
+          musclesWorked: body.musclesWorked || [],
+          muscleGroups: body.muscleGroups || [],
+          equipment: body.equipment || [],
+      }]);
+      return Send.created(c, results[0]);
+  }
+
   const parsed = ExerciseSchema.safeParse(body);
   if (!parsed.success) return Send.error(c, parsed.error);
 

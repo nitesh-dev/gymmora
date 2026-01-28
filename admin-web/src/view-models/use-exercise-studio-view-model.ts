@@ -27,13 +27,31 @@ export function useExerciseStudioViewModel(id?: string) {
 
     useEffect(() => {
         if (exercise) {
-            setLocalExercise(exercise);
+            setLocalExercise({
+                ...exercise,
+                muscleGroups: exercise.muscleGroups?.map((g: any) => g.name || g) || [],
+                equipment: exercise.equipment?.map((e: any) => e.name || e) || [],
+            });
         }
     }, [exercise]);
 
     const saveMutation = useMutation({
-        mutationFn: (data: any) => 
-            isNew ? exerciseService.createExercise(data) : exerciseService.updateExercise(id!, data),
+        mutationFn: (data: any) => {
+            const payload = {
+                exercise: {
+                    title: data.title,
+                    url: data.url,
+                    overview: data.overview,
+                    gifUrl: data.gifUrl,
+                    musclesWorkedImg: data.musclesWorkedImg,
+                },
+                content: data.content,
+                musclesWorked: data.musclesWorked,
+                muscleGroups: data.muscleGroups.map((name: string) => ({ name })),
+                equipment: data.equipment.map((name: string) => ({ name })),
+            };
+            return isNew ? exerciseService.createExercise(payload) : exerciseService.updateExercise(id!, payload);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises'] });
             queryClient.invalidateQueries({ queryKey: ['exercise-detail', id] });

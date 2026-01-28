@@ -42,14 +42,20 @@ export function UsersView() {
           <ActionIcon
             color="indigo"
             variant="subtle"
-            onClick={() => navigate(`/users/${info.row.original.id}`)}
+            onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/users/${info.row.original.id}`);
+            }}
           >
             <IconEye size={16} />
           </ActionIcon>
           <ActionIcon
             color="red"
             variant="subtle"
-            onClick={() => deleteUser(info.row.original.id, info.row.original.name)}
+            onClick={(e) => {
+                e.stopPropagation();
+                deleteUser(info.row.original.id, info.row.original.name);
+            }}
           >
             <IconTrash size={16} />
           </ActionIcon>
@@ -83,6 +89,7 @@ export function UsersView() {
           columns={columns} 
           data={filteredData} 
           loading={isLoading} 
+          onRowClick={(row) => navigate(`/users/${row.id}`)}
         />
       </Paper>
     </Stack>
