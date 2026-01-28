@@ -1,35 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Center, Loader } from '@mantine/core';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AdminLayout } from './layouts/AdminLayout';
+import { useAuthViewModel } from './view-models/use-auth-view-model';
+import { LoginView } from './views/LoginView';
+import { UsersView } from './views/UsersView';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Protection Wrapper
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isInitializing } = useAuthViewModel();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  if (isInitializing) {
+    return (
+      <Center h="100vh">
+        <Loader size="xl" />
+      </Center>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
 }
 
-export default App
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginView />} />
+        
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<div>Dashboard Placeholder</div>} />
+          <Route path="users" element={<UsersView />} />
+          <Route path="exercises" element={<div>Exercises Management Placeholder</div>} />
+          <Route path="plans" element={<div>Workout Plans Placeholder</div>} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

@@ -1,31 +1,32 @@
 import { Context, Next } from 'hono';
-import { jwt } from 'hono/jwt';
-import { env } from '../config/env';
+import { supabase } from '../config/supabase';
 import { userRepository } from '../repositories/user.repository';
 
 export const authMiddleware = async (c: Context, next: Next) => {
-  const jwtMiddleware = jwt({
-    secret: env.SUPABASE_JWT_SECRET,
-    alg: 'HS256',
-  });
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized: Missing or invalid token' }, 401);
+  }
+
+  const token = authHeader.split(' ')[1];
 
   try {
-    await jwtMiddleware(c, async () => {
-      const payload = c.get('jwtPayload');
-      if (!payload || !payload.sub) {
-        throw new Error('Unauthorized');
-      }
+    // Use Supabase Auth to verify the token - most robust way
+    const { data: { user: authUser }, error } = await supabase.auth.getUser(token);
 
-      // Context is key for performance - fetch user from our users table
-      // which was created by the Supabase DB trigger.
-      const user = await userRepository.findById(payload.sub);
-      
-      c.set('userId', payload.sub);
-      c.set('userRole', user?.role || 'USER');
-    });
+    if (error || !authUser) {
+      console.error('Supabase Auth verification failed:', error?.message);
+      throw new Error('Unauthorized');
+    }
+
+    // Now check our local DB for role/profile
+    const userProfile = await userRepository.findById(authUser.id);
+    
+    c.set('userId', authUser.id);
+    c.set('userRole', userProfile?.role || 'USER');
     
     await next();
-  } catch (e) {
+  } catch (e: any) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 };

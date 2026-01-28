@@ -1,24 +1,22 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
+import { authMiddleware } from '../middleware/auth';
 import { userService } from '../services/user.service';
 
 const userRoutes = new Hono();
 
-const CreateUserSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
+userRoutes.get('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId' as any);
+  const user = await userService.getUserById(userId);
+  return c.json(user);
 });
 
-userRoutes.get('/', async (c) => {
+userRoutes.get('/', authMiddleware, async (c) => {
+  const role = c.get('userRole' as any);
+  if (role !== 'ADMIN') {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
   const users = await userService.getAllUsers();
   return c.json(users);
-});
-
-userRoutes.post('/', async (c) => {
-  const json = await c.req.json();
-  const body = CreateUserSchema.parse(json);
-  const newUser = await userService.createUser(body);
-  return c.json(newUser, 201);
 });
 
 export { userRoutes };
