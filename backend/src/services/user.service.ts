@@ -5,15 +5,20 @@ export class UserService {
     const users = await userRepository.findAll();
     return users.map(u => ({
       ...u,
-      createdAt: u.createdAt.toISOString()
+      createdAt: u.createdAt.toISOString(),
+      updatedAt: u.updatedAt.toISOString(),
+      lastSyncAt: u.lastSyncAt?.toISOString() || null
     }));
   }
 
-  async createUser(data: { name: string; email: string }) {
-    const user = await userRepository.create(data);
+  async getUserById(id: string) {
+    const user = await userRepository.findById(id);
+    if (!user) return null;
     return {
       ...user,
-      createdAt: user.createdAt.toISOString()
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+      lastSyncAt: user.lastSyncAt?.toISOString() || null
     };
   }
 }

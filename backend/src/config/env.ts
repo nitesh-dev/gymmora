@@ -8,6 +8,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   PORT: z.string().default('3000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string(),
+  SUPABASE_JWT_SECRET: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);
