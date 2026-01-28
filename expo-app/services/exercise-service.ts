@@ -1,7 +1,7 @@
+import { getDb } from '@/db/client';
+import { exerciseEquipment, exerciseMuscleGroups, exercises } from '@/db/schema';
 import { ExerciseWithMuscleGroupsAndEquipment, ExerciseWithRelations } from '@/db/types';
 import { eq } from 'drizzle-orm';
-import { getDb } from '../db/client';
-import { exerciseEquipment, exerciseMuscleGroups, exercises } from '../db/schema';
 
 export const ExerciseService = {
   /**

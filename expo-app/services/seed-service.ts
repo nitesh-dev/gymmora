@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { ExpoSQLiteDatabase } from 'drizzle-orm/expo-sqlite';
 import results from '../assets/results.json';
-import * as schema from '../db/schema';
+import * as schema from '@/db/schema';
 
 interface SeedExercise {
   id: number;
