@@ -16,8 +16,9 @@ const queryClient = new QueryClient({
 });
 
 const theme = createTheme({
-  primaryColor: 'blue',
+  primaryColor: 'indigo',
   fontFamily: 'Inter, sans-serif',
+  defaultRadius: 'md',
 });
 
 interface AppProvidersProps {
@@ -27,7 +28,7 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme} defaultColorScheme="dark">
+      <MantineProvider theme={theme} defaultColorScheme="light">
         <ModalsProvider>
           <Notifications />
           {children}

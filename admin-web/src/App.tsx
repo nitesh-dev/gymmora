@@ -2,8 +2,11 @@ import { Center, Loader } from '@mantine/core';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './layouts/AdminLayout';
 import { useAuthViewModel } from './view-models/use-auth-view-model';
+import { DashboardView } from './views/DashboardView';
 import { ExercisesView } from './views/ExercisesView';
 import { LoginView } from './views/LoginView';
+import { PlanStudioView } from './views/PlanStudioView';
+import { PlansView } from './views/PlansView';
 import { UsersView } from './views/UsersView';
 
 // Protection Wrapper
@@ -36,10 +39,11 @@ function App() {
             <AdminLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<div>Dashboard Placeholder</div>} />
+          <Route index element={<DashboardView />} />
           <Route path="users" element={<UsersView />} />
           <Route path="exercises" element={<ExercisesView />} />
-          <Route path="plans" element={<div>Workout Plans Placeholder</div>} />
+          <Route path="plans" element={<PlansView />} />
+          <Route path="plans/:id" element={<PlanStudioView />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
