@@ -9,7 +9,7 @@ export const contentTypeEnum = pgEnum('content_type', ['step', 'benefit', 'tip',
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(), // Supabase Auth UID
-  name: text('name').notNull(),
+  name: text('name'),
   email: text('email').notNull().unique(),
   role: userRoleEnum('role').default('USER').notNull(),
   lastSyncAt: timestamp('last_sync_at'),

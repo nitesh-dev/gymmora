@@ -8,6 +8,13 @@
       "when": 1769600050561,
       "tag": "0000_elite_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769600657069,
+      "tag": "0001_cheerful_mongu",
+      "breakpoints": true
     }
   ]
 }
