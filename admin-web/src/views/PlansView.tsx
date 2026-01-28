@@ -112,6 +112,7 @@ export function PlansView() {
                 columns={columns} 
                 data={plans} 
                 loading={isLoading} 
+                onRowClick={(row) => navigate(`/plans/${row.id}`)}
             />
         </Paper>
     </Stack>

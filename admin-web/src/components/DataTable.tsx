@@ -1,4 +1,4 @@
-import { Box, LoadingOverlay, Table, Text } from '@mantine/core';
+import { Box, Skeleton, Table, Text } from '@mantine/core';
 import {
     flexRender,
     getCoreRowModel,
@@ -22,7 +22,6 @@ export function DataTable<T>({ columns, data, loading, onRowClick }: DataTablePr
 
   return (
     <Box pos="relative">
-      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <Table verticalSpacing="sm" highlightOnHover>
         <Table.Thead bg="var(--mantine-color-default-hover)">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -41,7 +40,17 @@ export function DataTable<T>({ columns, data, loading, onRowClick }: DataTablePr
           ))}
         </Table.Thead>
         <Table.Tbody>
-          {table.getRowModel().rows.length > 0 ? (
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <Table.Tr key={`skeleton-${i}`}>
+                {columns.map((_, j) => (
+                  <Table.Td key={`cell-${i}-${j}`}>
+                    <Skeleton h={20} radius="sm" />
+                  </Table.Td>
+                ))}
+              </Table.Tr>
+            ))
+          ) : table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
               <Table.Tr 
                 key={row.id} 
